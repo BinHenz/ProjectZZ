@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "ProjectZZGameMode.h"
-#include "ProjectZZCharacter.h"
+#include "GameMode/ProjectZZGameMode.h"
+#include "Character/ProjectZZCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AProjectZZGameMode::AProjectZZGameMode()

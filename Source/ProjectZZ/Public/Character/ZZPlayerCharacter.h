@@ -13,5 +13,11 @@ UCLASS()
 class PROJECTZZ_API AZZPlayerCharacter : public AProjectZZCharacter
 {
 	GENERATED_BODY()
+
+public:
+
+protected:
+	
+private:
 	
 };

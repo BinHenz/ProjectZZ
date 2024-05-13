@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "AbilitySystemComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -18,6 +19,8 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AProjectZZCharacter::AProjectZZCharacter()
 {
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -67,6 +70,18 @@ void AProjectZZCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// 어빌리티 시스템 컴포넌트 초기화
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+
+}
+
+UAbilitySystemComponent* AProjectZZCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 //////////////////////////////////////////////////////////////////////////

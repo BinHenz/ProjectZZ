@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "AbilitySystemInterface.h"
+#include "Abilities/GameplayAbility.h"
 #include "ProjectZZCharacter.generated.h"
 
 class USpringArmComponent;
@@ -16,7 +18,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AProjectZZCharacter : public ACharacter
+class AProjectZZCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -47,7 +49,12 @@ class AProjectZZCharacter : public ACharacter
 public:
 	AProjectZZCharacter();
 	
-
+	// IAbilitySystemInterface 구현
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
+	UAbilitySystemComponent* AbilitySystemComponent;
+	
 protected:
 
 	/** Called for movement input */
@@ -55,7 +62,6 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
 protected:
 	// APawn interface

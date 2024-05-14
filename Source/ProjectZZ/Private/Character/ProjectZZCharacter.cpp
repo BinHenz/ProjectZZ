@@ -7,10 +7,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PlayerState.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -81,32 +83,56 @@ void AProjectZZCharacter::BeginPlay()
 
 UAbilitySystemComponent* AProjectZZCharacter::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	// 어빌리티 핸들 컨테이너에 캐싱된 어빌리티 시스템이 유효한 경우 해당 어빌리티 시스템을 반환합니다.
+	if (AbilityHandleContainer.AbilitySystem.IsValid())
+	{
+		return AbilityHandleContainer.AbilitySystem.Get();
+	}
+	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetPlayerState());
+}
+
+void AProjectZZCharacter::GiveAbilities(UAbilitySystemComponent* InAbilitySystem)
+{
+	if (!ensure(InAbilitySystem) || CharacterAbilities.IsNull()) return;
+	CharacterAbilities.LoadSynchronous()->GiveAbilities(InAbilitySystem, AbilityHandleContainer);
+	UE_LOG(LogTemp, Log, TEXT("%s Give Abilities"), *GetName());
+}
+
+void AProjectZZCharacter::ClearAbilities()
+{
+	if (!CharacterAbilities.IsValid()) return;
+	AbilityHandleContainer.ClearAbilities();
+	UE_LOG(LogTemp, Log, TEXT("%s Clear Abilities"), *GetName());
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AProjectZZCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Move);
-
-		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Look);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
-}
+// void AProjectZZCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+// {
+// 	// 입력 바인딩 설정
+// 	PlayerInputComponent->BindAction("WeaponFire", IE_Pressed, this, &AProjectZZCharacter::ActivateFireAbility);
+// 	PlayerInputComponent->BindAction("MeleeAttack", IE_Pressed, this, &AProjectZZCharacter::ActivateMeleeAbility);
+// 	PlayerInputComponent->BindAction("Heal", IE_Pressed, this, &AProjectZZCharacter::ActivateHealAbility);
+// 	
+// 	// Set up action bindings
+// 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
+// 		
+// 		// Jumping
+// 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+// 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+//
+// 		// Moving
+// 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Move);
+//
+// 		// Looking
+// 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Look);
+// 	}
+// 	else
+// 	{
+// 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+// 	}
+// }
 
 void AProjectZZCharacter::Move(const FInputActionValue& Value)
 {
@@ -141,5 +167,29 @@ void AProjectZZCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AProjectZZCharacter::ActivateFireAbility()
+{
+	if (AbilitySystemComponent && FireAbilityHandle.IsValid())
+	{
+		AbilitySystemComponent->TryActivateAbility(FireAbilityHandle);
+	}
+}
+
+void AProjectZZCharacter::ActivateMeleeAbility()
+{
+	if (AbilitySystemComponent && MeleeAbilityHandle.IsValid())
+	{
+		AbilitySystemComponent->TryActivateAbility(MeleeAbilityHandle);
+	}
+}
+
+void AProjectZZCharacter::ActivateHealAbility()
+{
+	if (AbilitySystemComponent && HealAbilityHandle.IsValid())
+	{
+		AbilitySystemComponent->TryActivateAbility(HealAbilityHandle);
 	}
 }

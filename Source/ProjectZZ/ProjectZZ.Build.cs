@@ -8,6 +8,11 @@ public class ProjectZZ : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput",
+			"UMG", "AIModule", "NavigationSystem", "Niagara", "SlateCore", "Sockets",
+			"Networking", "NetCore", "Json", "GameplayAbilities", "GameplayTags", "GameplayTasks", "AdvancedWidgets", "CommonUI"
+		});
 	}
 }

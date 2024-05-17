@@ -14,4 +14,10 @@ class PROJECTZZ_API AZZZombieCharacter : public AProjectZZCharacter
 {
 	GENERATED_BODY()
 	
+public:
+	AZZZombieCharacter();
+
+protected:
+	UPROPERTY()
+	const class UZZAbilitySet* AttributeSet;
 };

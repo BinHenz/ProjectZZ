@@ -64,6 +64,10 @@ public:
 	// 캐릭터의 생존 여부 상태를 가져옵니다.
 	UFUNCTION(BlueprintGetter)
 	const bool& GetAliveState() const { return bIsAlive; }
+
+	// 캐릭터의 생존 상태를 변경합니다.
+	UFUNCTION(BlueprintNativeEvent)
+	void SetAliveState(bool IsAlive);
 	
 protected:
 

@@ -200,9 +200,9 @@ public:
 	FOnRespawnTimeChangeSignature OnRespawnTimeChanged;
 
 protected:
-	// UPROPERTY(EditAnywhere)
-	// TSubclassOf<class UGamePlayHealthWidget> HealthWidgetClass;
-	//
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UHealthWidget> HealthWidgetClass;
+	
 	// UPROPERTY(EditAnywhere)
 	// TSubclassOf<class USkillWidget> SkillWidgetClass;
 	//
@@ -264,7 +264,7 @@ private:
 
 	uint8 bIsPawnSettedOnce : 1;
 
-	// TWeakObjectPtr<UGamePlayHealthWidget> HealthWidget;
+	TWeakObjectPtr<UHealthWidget> HealthWidget;
 	// TObjectPtr<UDirectionalDamageIndicator> DirectionDamageIndicatorWidget;
 	// TWeakObjectPtr<UGamePlayPortraitWidget> PortraitWidget;
 };

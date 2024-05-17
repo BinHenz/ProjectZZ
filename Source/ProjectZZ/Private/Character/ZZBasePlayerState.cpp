@@ -7,6 +7,7 @@
 #include "Character/ProjectZZCharacter.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
 #include "AbilitySystemComponent.h"
+#include "UI/HealthWidget.h"
 #include "GameFramework/GameStateBase.h"
 #include "Net/UnrealNetwork.h"
 
@@ -66,7 +67,6 @@ float AZZBasePlayerState::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 void AZZBasePlayerState::BeginPlay()
 {
 	Super::BeginPlay();
-	//TODO:: 임시 코드, 차수 수정 요망
 
 	if(HasAuthority())
 	{
@@ -92,6 +92,21 @@ void AZZBasePlayerState::OnRep_Owner()
 	Super::OnRep_Owner();
 	OnOwnerChanged.Broadcast(Owner);
 
+	if (const auto LocalController = GetPlayerController(); LocalController && LocalController->IsLocalController())
+	{
+		HealthWidget = CreateWidget<UHealthWidget>(LocalController, HealthWidgetClass);
+		if (HealthWidget.IsValid())
+		{
+			HealthWidget->AddToViewport();
+	
+			OnHealthChanged.AddUObject(HealthWidget.Get(), &UHealthWidget::SetCurrentHealth);
+			OnMaxHealthChanged.AddUObject(HealthWidget.Get(), &UHealthWidget::SetMaximumHealth);
+	
+			HealthWidget->SetMaximumHealth(GetMaxHealth());
+			HealthWidget->SetCurrentHealth(Health);
+		}
+	}
+	
 	// if (const auto LocalController = GetPlayerController(); LocalController && LocalController->IsLocalController())
 	// {
 	// 	PortraitWidget = CreateWidget<UGamePlayPortraitWidget>(LocalController, PortraitWidgetClass);
@@ -106,17 +121,6 @@ void AZZBasePlayerState::OnRep_Owner()
 	// 			});
 	// 	}
 	//
-	// 	HealthWidget = CreateWidget<UGamePlayHealthWidget>(LocalController, HealthWidgetClass);
-	// 	if (HealthWidget.IsValid())
-	// 	{
-	// 		HealthWidget->AddToViewport();
-	//
-	// 		OnHealthChanged.AddUObject(HealthWidget.Get(), &UGamePlayHealthWidget::SetCurrentHealth);
-	// 		OnMaxHealthChanged.AddUObject(HealthWidget.Get(), &UGamePlayHealthWidget::SetMaximumHealth);
-	//
-	// 		HealthWidget->SetMaximumHealth(GetMaxHealth());
-	// 		HealthWidget->SetCurrentHealth(Health);
-	// 	}
 	//
 	// 	AimOccupyProgressWidget = CreateWidget<UAimOccupyProgressWidget>(
 	// 		LocalController, AimOccupyProgressWidgetClass);
@@ -274,12 +278,17 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 
 	if (const auto Character = Cast<AProjectZZCharacter>(NewPawn))
 	{
-	// 	if (HealthWidget.IsValid())
-	// 	{
-	// 		HealthWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-	// 		HealthWidget->SetTeam(Team);
-	// 	}
-	// 	OnAliveStateChanged.AddUObject(Character, &AProjectZZCharacter::SetAliveState);
+		if (HealthWidget.IsValid())
+		{
+			HealthWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+		
+		OnAliveStateChanged.AddUObject(Character, &AProjectZZCharacter::SetAliveState);
+	}
+	else
+	{
+		if (HealthWidget.IsValid()) HealthWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
 	// 	Character->SetStencilMask(UniqueRenderMask);
 	// 	Character->SetAlly(bIsAlly);
 	//
@@ -333,19 +342,15 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 	// 		}
 	// 	}
 	// }
-	// else
-	// {
-	// 	if (HealthWidget.IsValid()) HealthWidget->SetVisibility(ESlateVisibility::Hidden);
-	// }
-	//
-	// BroadcastMaxHealthChanged();
-	//
-	// if (HealthWidget.IsValid())
-	// {
-	// 	AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetHealthAttribute()).AddUObject(
-	// 		HealthWidget.Get(), &UGamePlayHealthWidget::SetCurrentHealthAttribute);
-	// 	AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetMaxHealthAttribute()).AddUObject(
-	// 		HealthWidget.Get(), &UGamePlayHealthWidget::SetMaximumHealthAttribute);
+
+	BroadcastMaxHealthChanged();
+	
+	if (HealthWidget.IsValid())
+	{
+		AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetHealthAttribute()).AddUObject(
+			HealthWidget.Get(), &UHealthWidget::SetCurrentHealthAttribute);
+		AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetMaxHealthAttribute()).AddUObject(
+			HealthWidget.Get(), &UHealthWidget::SetMaximumHealthAttribute);
 	}
 }
 

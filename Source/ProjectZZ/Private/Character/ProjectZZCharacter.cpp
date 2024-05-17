@@ -108,31 +108,25 @@ void AProjectZZCharacter::ClearAbilities()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-// void AProjectZZCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-// {
-// 	// 입력 바인딩 설정
-// 	PlayerInputComponent->BindAction("WeaponFire", IE_Pressed, this, &AProjectZZCharacter::ActivateFireAbility);
-// 	PlayerInputComponent->BindAction("MeleeAttack", IE_Pressed, this, &AProjectZZCharacter::ActivateMeleeAbility);
-// 	PlayerInputComponent->BindAction("Heal", IE_Pressed, this, &AProjectZZCharacter::ActivateHealAbility);
-// 	
-// 	// Set up action bindings
-// 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-// 		
-// 		// Jumping
-// 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-// 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-//
-// 		// Moving
-// 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Move);
-//
-// 		// Looking
-// 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AProjectZZCharacter::Look);
-// 	}
-// 	else
-// 	{
-// 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-// 	}
-// }
+void AProjectZZCharacter::SetAliveState_Implementation(bool IsAlive)
+{
+	bIsAlive = IsAlive;
+
+	if (IsAlive)
+	{
+		GetMesh()->SetAllBodiesSimulatePhysics(false);
+		GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	else
+	{
+		GetMesh()->SetCollisionProfileName(TEXT("RagDoll"));
+		GetMesh()->SetAllBodiesSimulatePhysics(true);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	if (HasAuthority())
+		GetCharacterMovement()->SetMovementMode(IsAlive ? MOVE_Walking : MOVE_None);
+}
 
 void AProjectZZCharacter::Move(const FInputActionValue& Value)
 {

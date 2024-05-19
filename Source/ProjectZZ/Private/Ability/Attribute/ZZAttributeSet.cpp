@@ -24,32 +24,32 @@ void UZZAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 
 	if ((GetHealth() <= 0.0f) && !bOutOfHealth)
 	{
-		// if (OnPlayerKill.IsBound())
-		// {
-		// 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
-		// 	AActor* Instigator = EffectContext.GetOriginalInstigator();
-		// 	AActor* Causer = EffectContext.GetEffectCauser();
-		//
-		// 	const auto VictimPlayerState = Cast<APlayerState>(GetOwningActor());
-		// 	auto InstigatorPlayerState = Cast<APlayerState>(Instigator);
-		//
-		// 	if(!InstigatorPlayerState) //인스티게이터가 플레이어 스테이트가 아닌 경우(드론이 죽였을 경우)
-		// 	{
-		// 		auto InstigatorPlayerPawn = Instigator->GetInstigator();
-		//
-		// 		if(InstigatorPlayerPawn)
-		// 		{
-		// 			InstigatorPlayerState = Cast<APlayerState>(InstigatorPlayerPawn->GetPlayerState());
-		// 		}
-		// 	}
-		// 	
-		// 	if (VictimPlayerState != nullptr && InstigatorPlayerState != nullptr)
-		// 	{
-		// 		OnPlayerKill.Broadcast(VictimPlayerState->GetOwningController(),
-		// 		                       InstigatorPlayerState->GetOwningController(), Causer);
-		// 	}
-		// 	//피해자 컨트롤러 가해자 컨트롤러 가해자 액터
-		// }
+		if (OnPlayerKill.IsBound())
+		{
+			const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+			AActor* Instigator = EffectContext.GetOriginalInstigator();
+			AActor* Causer = EffectContext.GetEffectCauser();
+		
+			const auto VictimPlayerState = Cast<APlayerState>(GetOwningActor());
+			auto InstigatorPlayerState = Cast<APlayerState>(Instigator);
+		
+			if(!InstigatorPlayerState) //인스티게이터가 플레이어 스테이트가 아닌 경우(플레이어 스테이트 없는 객체가 죽였을때)
+			{
+				auto InstigatorPlayerPawn = Instigator->GetInstigator();
+		
+				if(InstigatorPlayerPawn)
+				{
+					InstigatorPlayerState = Cast<APlayerState>(InstigatorPlayerPawn->GetPlayerState());
+				}
+			}
+			
+			if (VictimPlayerState != nullptr && InstigatorPlayerState != nullptr)
+			{
+				OnPlayerKill.Broadcast(VictimPlayerState->GetOwningController(),
+				                       InstigatorPlayerState->GetOwningController(), Causer);
+			}
+			//피해자 컨트롤러 가해자 컨트롤러 가해자 액터
+		}
 	}
 
 	bOutOfHealth = (GetHealth() <= 0.0f);

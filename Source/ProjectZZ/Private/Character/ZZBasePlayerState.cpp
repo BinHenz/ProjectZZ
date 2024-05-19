@@ -218,7 +218,7 @@ bool AZZBasePlayerState::ShouldTakeDamage(float DamageAmount, FDamageEvent const
 	// EventInstigator가 nullptr인 경우 글로벌 데미지이거나 어떤 정의할 수 없는 데미지이지만 일단 받아야하는 데미지라고 판단합니다.
 	if (!EventInstigator) return true;
 
-	// 데미지가 피해인 경우 다른 팀인 경우에만 받고, 데미지가 힐인 경우 같은 팀인 경우에만 받습니다.
+	// 데미지가 피해인 경우 본인 이외 경우에만 받고, 데미지가 힐인 경우 본인인 경우에만 받습니다.
 	const auto Other = EventInstigator->GetPlayerState<AZZBasePlayerState>();
 	return (DamageAmount > 0.f && !Other) || (DamageAmount < 0.f && Other);
 }
@@ -289,6 +289,8 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 	{
 		if (HealthWidget.IsValid()) HealthWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
+	
+	/*
 	// 	Character->SetStencilMask(UniqueRenderMask);
 	// 	Character->SetAlly(bIsAlly);
 	//
@@ -342,7 +344,8 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 	// 		}
 	// 	}
 	// }
-
+	*/
+	
 	BroadcastMaxHealthChanged();
 	
 	if (HealthWidget.IsValid())
@@ -408,7 +411,7 @@ void AZZBasePlayerState::SetAliveState(bool AliveState)
 	if (AbilitySystem) AbilitySystem->SetLooseGameplayTagCount(DeathTag, bRecentAliveState ? 0 : 1);
 
 	// if (CharacterWidget) CharacterWidget->SetAliveState(bRecentAliveState);
-	// OnAliveStateChanged.Broadcast(AliveState);
+	OnAliveStateChanged.Broadcast(AliveState);
 }
 
 void AZZBasePlayerState::RespawnTimerCallback(FRespawnTimerDelegate Callback)

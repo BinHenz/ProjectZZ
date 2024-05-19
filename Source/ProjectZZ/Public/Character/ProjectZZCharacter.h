@@ -58,6 +58,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+						 AActor* DamageCauser) override;
+	
 	virtual void GiveAbilities(UAbilitySystemComponent* InAbilitySystem) override;
 	virtual void ClearAbilities() override;
 	

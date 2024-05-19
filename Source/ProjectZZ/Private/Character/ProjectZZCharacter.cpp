@@ -91,6 +91,20 @@ UAbilitySystemComponent* AProjectZZCharacter::GetAbilitySystemComponent() const
 	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetPlayerState());
 }
 
+float AProjectZZCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	const auto LocalState = GetPlayerState();
+
+	// 플레이어 스테이트가 없는 경우 원본의 로직을 실행합니다.
+	if (!LocalState) return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// 플레이어 스테이트에서 데미지를 처리하고나서, 애니메이션 재생을 위해 캐릭터에서도 데미지를 처리합니다.
+	const auto Damage = LocalState->TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+}
+
 void AProjectZZCharacter::GiveAbilities(UAbilitySystemComponent* InAbilitySystem)
 {
 	if (!ensure(InAbilitySystem) || CharacterAbilities.IsNull()) return;

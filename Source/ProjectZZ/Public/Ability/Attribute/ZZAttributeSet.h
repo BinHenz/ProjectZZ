@@ -15,7 +15,7 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 // DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDashStackFullOrNot, const bool, bIsFull);
 
-// DECLARE_EVENT_ThreeParams(AZZBasePlayerState, FPlayerKilledSignature, AController*, AController*, AActor*)
+DECLARE_EVENT_ThreeParams(AZZBasePlayerState, FPlayerKilledSignature, AController*, AController*, AActor*)
 
 /**
  * 
@@ -39,7 +39,9 @@ public:
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, Agility);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, Preparation);
 
-	protected:
+	mutable FPlayerKilledSignature OnPlayerKill;
+
+protected:
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;

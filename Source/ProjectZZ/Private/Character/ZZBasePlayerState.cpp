@@ -4,7 +4,7 @@
 #include "Character/ZZBasePlayerState.h"
 
 #include "AbilitySystemComponent.h"
-#include "Character/ProjectZZCharacter.h"
+#include "..\..\Public\Character\ZZBaseCharacter.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "UI/HealthWidget.h"
@@ -183,7 +183,7 @@ void AZZBasePlayerState::IncreaseKillCount()
 
 void AZZBasePlayerState::OnKillOtherPlayer()
 {
-	if (const auto Character = GetPawn<AProjectZZCharacter>())
+	if (const auto Character = GetPawn<AZZBaseCharacter>())
 	{
 		const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
 			OnKillOtherCharacterEffect, 0, AbilitySystem->MakeEffectContext());
@@ -225,7 +225,7 @@ bool AZZBasePlayerState::ShouldTakeDamage(float DamageAmount, FDamageEvent const
 
 void AZZBasePlayerState::InitializeStatus()
 {
-	if (const auto Character = GetPawn<AProjectZZCharacter>())
+	if (const auto Character = GetPawn<AZZBaseCharacter>())
 	{
 		const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
 			StatusInitializeEffect, 0, AbilitySystem->MakeEffectContext());
@@ -276,14 +276,14 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 		NewAbilityInterface->GiveAbilities(AbilitySystem);
 	}
 
-	if (const auto Character = Cast<AProjectZZCharacter>(NewPawn))
+	if (const auto Character = Cast<AZZBaseCharacter>(NewPawn))
 	{
 		if (HealthWidget.IsValid())
 		{
 			HealthWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 		
-		OnAliveStateChanged.AddUObject(Character, &AProjectZZCharacter::SetAliveState);
+		OnAliveStateChanged.AddUObject(Character, &AZZBaseCharacter::SetAliveState);
 	}
 	else
 	{
@@ -359,7 +359,7 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 
 float AZZBasePlayerState::GetMaxHealth() const
 {
-	if (const auto Character = GetPawn<AProjectZZCharacter>()) return Character->GetCharacterMaxHealth();
+	if (const auto Character = GetPawn<AZZBaseCharacter>()) return Character->GetCharacterMaxHealth();
 	return 0.f;
 }
 
@@ -539,7 +539,7 @@ void AZZBasePlayerState::NoticePlayerHit(const FName& CauserName, const FVector&
 		// if (DirectionDamageIndicatorWidget)
 		// 	DirectionDamageIndicatorWidget->IndicateStart(CauserName.ToString(), CauserLocation);
 		//
-		// if (const auto Character = GetPawn<AProjectZZCharacter>()) Character->PlayHitScreen();
+		// if (const auto Character = GetPawn<AZZBaseCharacter>()) Character->PlayHitScreen();
 	}
 }
 

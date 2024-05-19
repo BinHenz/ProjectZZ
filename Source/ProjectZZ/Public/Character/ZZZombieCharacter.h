@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/ProjectZZCharacter.h"
+#include "ZZBaseCharacter.h"
 #include "ZZZombieCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTZZ_API AZZZombieCharacter : public AProjectZZCharacter
+class PROJECTZZ_API AZZZombieCharacter : public AZZBaseCharacter
 {
 	GENERATED_BODY()
 	

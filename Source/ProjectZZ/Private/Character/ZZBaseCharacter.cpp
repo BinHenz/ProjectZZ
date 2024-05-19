@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Character/ProjectZZCharacter.h"
+#include "..\..\Public\Character\ZZBaseCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -17,9 +17,9 @@
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
-// AProjectZZCharacter
+// AZZBaseCharacter
 
-AProjectZZCharacter::AProjectZZCharacter()
+AZZBaseCharacter::AZZBaseCharacter()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	
@@ -59,7 +59,7 @@ AProjectZZCharacter::AProjectZZCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
-void AProjectZZCharacter::BeginPlay()
+void AZZBaseCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
@@ -81,7 +81,7 @@ void AProjectZZCharacter::BeginPlay()
 
 }
 
-UAbilitySystemComponent* AProjectZZCharacter::GetAbilitySystemComponent() const
+UAbilitySystemComponent* AZZBaseCharacter::GetAbilitySystemComponent() const
 {
 	// 어빌리티 핸들 컨테이너에 캐싱된 어빌리티 시스템이 유효한 경우 해당 어빌리티 시스템을 반환합니다.
 	if (AbilityHandleContainer.AbilitySystem.IsValid())
@@ -91,7 +91,7 @@ UAbilitySystemComponent* AProjectZZCharacter::GetAbilitySystemComponent() const
 	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetPlayerState());
 }
 
-float AProjectZZCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+float AZZBaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
 	AActor* DamageCauser)
 {
 	const auto LocalState = GetPlayerState();
@@ -105,14 +105,14 @@ float AProjectZZCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Da
 	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 }
 
-void AProjectZZCharacter::GiveAbilities(UAbilitySystemComponent* InAbilitySystem)
+void AZZBaseCharacter::GiveAbilities(UAbilitySystemComponent* InAbilitySystem)
 {
 	if (!ensure(InAbilitySystem) || CharacterAbilities.IsNull()) return;
 	CharacterAbilities.LoadSynchronous()->GiveAbilities(InAbilitySystem, AbilityHandleContainer);
 	UE_LOG(LogTemp, Log, TEXT("%s Give Abilities"), *GetName());
 }
 
-void AProjectZZCharacter::ClearAbilities()
+void AZZBaseCharacter::ClearAbilities()
 {
 	if (!CharacterAbilities.IsValid()) return;
 	AbilityHandleContainer.ClearAbilities();
@@ -122,7 +122,7 @@ void AProjectZZCharacter::ClearAbilities()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AProjectZZCharacter::SetAliveState_Implementation(bool IsAlive)
+void AZZBaseCharacter::SetAliveState_Implementation(bool IsAlive)
 {
 	bIsAlive = IsAlive;
 
@@ -142,7 +142,7 @@ void AProjectZZCharacter::SetAliveState_Implementation(bool IsAlive)
 		GetCharacterMovement()->SetMovementMode(IsAlive ? MOVE_Walking : MOVE_None);
 }
 
-void AProjectZZCharacter::Move(const FInputActionValue& Value)
+void AZZBaseCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -165,7 +165,7 @@ void AProjectZZCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void AProjectZZCharacter::Look(const FInputActionValue& Value)
+void AZZBaseCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -178,7 +178,7 @@ void AProjectZZCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AProjectZZCharacter::ActivateFireAbility()
+void AZZBaseCharacter::ActivateFireAbility()
 {
 	if (AbilitySystemComponent && FireAbilityHandle.IsValid())
 	{
@@ -186,7 +186,7 @@ void AProjectZZCharacter::ActivateFireAbility()
 	}
 }
 
-void AProjectZZCharacter::ActivateMeleeAbility()
+void AZZBaseCharacter::ActivateMeleeAbility()
 {
 	if (AbilitySystemComponent && MeleeAbilityHandle.IsValid())
 	{
@@ -194,7 +194,7 @@ void AProjectZZCharacter::ActivateMeleeAbility()
 	}
 }
 
-void AProjectZZCharacter::ActivateHealAbility()
+void AZZBaseCharacter::ActivateHealAbility()
 {
 	if (AbilitySystemComponent && HealAbilityHandle.IsValid())
 	{

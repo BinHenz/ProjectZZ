@@ -12,7 +12,8 @@ public class ProjectZZ : ModuleRules
 		{
 			"Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput",
 			"UMG", "AIModule", "NavigationSystem", "Niagara", "SlateCore", "Sockets",
-			"Networking", "NetCore", "Json", "GameplayAbilities", "GameplayTags", "GameplayTasks", "AdvancedWidgets", "CommonUI"
+			"Networking", "NetCore", "Json", "GameplayAbilities", "GameplayTags", "GameplayTasks",
+			"AdvancedWidgets", "CommonUI"
 		});
 	}
 }

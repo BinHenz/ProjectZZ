@@ -9,7 +9,7 @@
 #include "Ability/ZZAbilitySet.h"
 #include "Ability/RegisterAbilityInterface.h"
 #include "Abilities/GameplayAbility.h"
-#include "ProjectZZCharacter.generated.h"
+#include "ZZBaseCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -21,7 +21,7 @@ struct FGameplayAbilitySpec;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AProjectZZCharacter : public ACharacter, public IAbilitySystemInterface ,public IRegisterAbilityInterface
+class AZZBaseCharacter : public ACharacter, public IAbilitySystemInterface ,public IRegisterAbilityInterface
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ class AProjectZZCharacter : public ACharacter, public IAbilitySystemInterface ,p
 	UInputAction* LookAction;
 
 public:
-	AProjectZZCharacter();
+	AZZBaseCharacter();
 	
 	// IAbilitySystemInterface 구현
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

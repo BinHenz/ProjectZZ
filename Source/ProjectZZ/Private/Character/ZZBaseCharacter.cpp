@@ -81,6 +81,28 @@ void AZZBaseCharacter::BeginPlay()
 
 }
 
+void AZZBaseCharacter::OnCharacterObjectTypeUpdated_Implementation(const TEnumAsByte<ECollisionChannel>& NewObjectType)
+{
+}
+
+void AZZBaseCharacter::OnFactionchanged_Implementation(const EFaction& NewFaction, const EFaction& OldFaction)
+{
+	const auto ObjectType = FactionObjectTypeMap.FindChecked(NewFaction);
+	GetCapsuleComponent()->SetCollisionObjectType(ObjectType);
+	OnCharacterObjectTypeUpdated(ObjectType);
+}
+
+void AZZBaseCharacter::SetFaction(const EFaction& Faction)
+{
+	if (RecentFaction == Faction)
+	{
+		return;
+	}
+	const auto OldFaction = RecentFaction;
+	RecentFaction = Faction;
+	OnFactionchanged(Faction, OldFaction);
+}
+
 UAbilitySystemComponent* AZZBaseCharacter::GetAbilitySystemComponent() const
 {
 	// 어빌리티 핸들 컨테이너에 캐싱된 어빌리티 시스템이 유효한 경우 해당 어빌리티 시스템을 반환합니다.

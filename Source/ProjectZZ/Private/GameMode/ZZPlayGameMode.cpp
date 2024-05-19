@@ -3,3 +3,8 @@
 
 #include "GameMode/ZZPlayGameMode.h"
 
+AZZPlayGameMode::AZZPlayGameMode()
+{
+	PrimaryActorTick.bCanEverTick = false;
+}
+

@@ -13,5 +13,14 @@ UCLASS()
 class PROJECTZZ_API AZZPlayGameMode : public AZZBaseGameMode
 {
 	GENERATED_BODY()
+
+public:
+	AZZPlayGameMode();
+
+protected:
+
+	
+private:
+
 	
 };

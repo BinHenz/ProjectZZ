@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "AbilitySystemInterface.h"
+#include "Faction.h"
 #include "Ability/ZZAbilitySet.h"
 #include "Ability/RegisterAbilityInterface.h"
 #include "Abilities/GameplayAbility.h"
@@ -96,6 +97,7 @@ private:
 	bool bIsAlive;
 	
 	FZZAbilityHandleContainer AbilityHandleContainer;
+	EFaction RecentFaction;
 
 protected:
 	// // APawn interface
@@ -104,6 +106,13 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 
+	/** 캐릭터의 팀 정보가 변경되면 호출됩니다. */
+	UFUNCTION(BlueprintNativeEvent)
+	void OnFactionchanged(const EFaction& NewFaction, const EFaction& OldFaction);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnCharacterObjectTypeUpdated(const TEnumAsByte<ECollisionChannel>& NewObjectType);
+	
 	// 이 캐릭터의 고유한 최대 체력을 나타냅니다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float MaxHealth;
@@ -121,6 +130,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float AttackPoint;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<EFaction, TEnumAsByte<ECollisionChannel>> FactionObjectTypeMap;
+	
 	//캐릭터의 이름입니다
 	FName CharacterName;
 
@@ -142,6 +154,15 @@ public:
 
 	UFUNCTION(BlueprintGetter)
 	const float& GetCharacterMaxSkillStack() const { return MaxSkillStack; }
+
+	// 캐릭터에게 진영을 설정해줍니다.
+	void SetFaction(const EFaction& Faction);
+
+	UFUNCTION(BlueprintGetter)
+	EFaction GetFaction() { return RecentFaction; }
+
+	bool IsSameFaction(const EFaction& Faction) const;
+
 
 };
 

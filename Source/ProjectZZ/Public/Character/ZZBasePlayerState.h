@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "Faction.h"
+#include "FactionObjectInterface.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
 #include "GameFramework/PlayerState.h"
 #include "ZZBasePlayerState.generated.h"
 
 DECLARE_EVENT_OneParam(AZZBasePlayerState, FHealthChangeSignature, const float&)
+
+DECLARE_EVENT_OneParam(AZZBasePlayerState, FFactionSignature, const EFaction&)
 
 DECLARE_EVENT_ThreeParams(AZZBasePlayerState, FPlayerKillSignature, AController*, AController*, AActor*)
 
@@ -30,7 +34,8 @@ class UAimOccupyProgressWidget;
  * 
  */
 UCLASS()
-class PROJECTZZ_API AZZBasePlayerState : public APlayerState, public IAbilitySystemInterface
+class PROJECTZZ_API AZZBasePlayerState : public APlayerState, public IAbilitySystemInterface,
+										 public IFactionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -50,7 +55,15 @@ protected:
 
 public:
 	virtual const UZZAttributeSet* GetZZAttributeSet() { return ZZAttributeSet; }
+	
+	// 플레이어의 진영을 설정합니다.
+	virtual void SetFaction(const EFaction& DesireFaction);
 
+	virtual EFaction GetFaction() const override { return Faction; }
+
+	UFUNCTION(BlueprintGetter)
+	const EFaction& BP_GetFaction() const { return Faction; }
+	
 	// UFUNCTION(BlueprintCallable)
 	// const class UDynamicCrossHairWidget* GetDynamicCrossHairWidget() const;
 
@@ -119,6 +132,9 @@ protected:
 	virtual void OnRep_Health();
 
 	UFUNCTION()
+	virtual void OnRep_Faction();
+
+	UFUNCTION()
 	virtual void OnRep_RespawnTime();
 
 	UFUNCTION()
@@ -178,6 +194,9 @@ public:
 	// 최대 체력이 변경되는 경우 호출됩니다. 매개변수로 변경된 전체 체력을 받습니다.
 	FHealthChangeSignature OnMaxHealthChanged;
 
+	// 현재 진영이 변경되는 경우 호출됩니다. 매개변수로 현재 팀을 받습니다.
+	FFactionSignature OnFactionChanged;
+
 	// 플레이어가 사망조건을 달성한 경우 호출됩니다. 매개변수로 살해당한 플레이어의 컨트롤러, 살해한 액터, 살해한 플레이어의 컨트롤러를 받습니다.
 	FPlayerKillSignature OnPlayerKilled;
 
@@ -217,6 +236,9 @@ protected:
 	FActiveGameplayEffectHandle KillStreakBuffEffectHandle;
 
 private:
+	UPROPERTY(ReplicatedUsing=OnRep_Faction, Transient, BlueprintGetter=BP_GetFaction)
+	EFaction Faction;
+	
 	UPROPERTY(ReplicatedUsing=OnRep_Health, Transient)
 	float Health;
 

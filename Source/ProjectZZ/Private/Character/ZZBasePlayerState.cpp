@@ -143,6 +143,14 @@ void AZZBasePlayerState::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 }
 
+void AZZBasePlayerState::SetFaction(const EFaction& DesireFaction)
+{
+	if (Faction == DesireFaction) return;
+	Faction = DesireFaction;
+	if (const auto Character = GetPawn<AZZBaseCharacter>()) Character->SetFaction(Faction);
+	OnFactionChanged.Broadcast(Faction);
+}
+
 // const UDynamicCrossHairWidget* AZZBasePlayerState::GetDynamicCrossHairWidget() const
 // {
 // 	if (CharacterWidget)
@@ -366,6 +374,12 @@ float AZZBasePlayerState::GetMaxHealth() const
 void AZZBasePlayerState::OnRep_Health()
 {
 	OnHealthChanged.Broadcast(Health);
+}
+
+void AZZBasePlayerState::OnRep_Faction()
+{
+	if (const auto Character = GetPawn<AZZBaseCharacter>()) Character->SetFaction(Faction);
+	OnFactionChanged.Broadcast(Faction);
 }
 
 void AZZBasePlayerState::OnRep_RespawnTime()

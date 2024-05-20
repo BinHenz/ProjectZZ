@@ -35,18 +35,6 @@ void AZZPlayerMovableController::SetMouseSensitivity(const float& Sensitivity)
 void AZZPlayerMovableController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// FAsyncLoadGameFromSlotDelegate Delegate;
-	//
-	// Delegate.BindWeakLambda(this,
-	// 	[&](const FString& SlotName, const int32 UserIndex, USaveGame* SaveFile)
-	// 	{
-	// 		const auto OptionSaveFile = Cast<UOptionSave>(SaveFile);
-	// 		if (OptionSaveFile == nullptr) return;
-	// 		MouseSensitivity = OptionSaveFile->MouseSensitivity;
-	// 	}); // 람다식으로 바인딩
-	//
-	// UGameplayStatics::AsyncLoadGameFromSlot(TEXT("TestSaveSlot"), 0, Delegate);
 }
 
 void AZZPlayerMovableController::SetupEnhancedInputComponent(UEnhancedInputComponent* const& EnhancedInputComponent)

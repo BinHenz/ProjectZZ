@@ -3,75 +3,46 @@
 #include "GameMode/ZZBaseGameMode.h"
 
 #include "AbilitySystemGlobals.h"
-#include "EngineUtils.h"
 #include "Faction.h"
 #include "Character/ZZBaseCharacter.h"
 #include "Character/ZZBasePlayerState.h"
-#include "Components/CapsuleComponent.h"
-#include "GameFramework/PlayerStart.h"
 #include "GameMode/ZZBaseGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
-#include "EntitySystem/MovieSceneEntitySystemRunner.h"
+#include "Character/ZZPlayerCharacter.h"
 #include "GameFramework/GameSession.h"
 
 namespace MatchState
 {
 	// const FName IsSelectCharacter = FName(TEXT("IsSelectCharacter"));
-	const FName IsIntro = FName(TEXT("IsIntro"));
+	// const FName IsIntro = FName(TEXT("IsIntro"));
 }
 
 const FString AZZBaseGameMode::SurvivorFactionSpawnTag = FString(TEXT("SurvivorFactionSpawnZone"));
 const FString AZZBaseGameMode::RaiderFactionSpawnTag = FString(TEXT("RaiderFactionSpawnZone"));
+const FString AZZBaseGameMode::ZombieFactionSpawnTag = FString(TEXT("ZombieFactionSpawnZone"));
 
 AZZBaseGameMode::AZZBaseGameMode()
 {
 	bDelayedStart = true;
 	MinRespawnDelay = 4.0f;
 	MatchStartDelay = 3.0f;
+	
+	// CharacterClasses.Add(TEXT("Player"), AZZPlayerCharacter::StaticClass());
 }
 
 void AZZBaseGameMode::RestartPlayer(AController* NewPlayer)
 {
 	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
-	{
 		return;
-	}
 
-	FString SpawnTag;
-	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
+	// 플레이어 진영을 생존자로 설정
+	if (auto PlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
 	{
-		switch (BasePlayerState->GetFaction())
-		{
-		case EFaction::Survivor:
-			SpawnTag = SurvivorFactionSpawnTag;
-			break;
-		case EFaction::Raider:
-			SpawnTag = RaiderFactionSpawnTag;
-			break;
-		case EFaction::Zombie:
-			SpawnTag = TEXT("ZombieSpawnZone");
-			break;
-		default:
-			SpawnTag = TEXT("InitSpawnZone");
-			break;
-		}
+		PlayerState->SetFaction(EFaction::Survivor);
 	}
-
-	//TODO: RestartPlayer를 오버라이딩할 필요 없이, FindPlayerStart에서 더 간단히 구현할 수 있습니다.
-	AActor* StartSpot = FindPlayerStart(NewPlayer, SpawnTag);
-
-	// If a start spot wasn't found,
-	if (StartSpot == nullptr)
-	{
-		// Check for a previously assigned spot
-		if (NewPlayer->StartSpot != nullptr)
-		{
-			StartSpot = NewPlayer->StartSpot.Get();
-			UE_LOG(LogGameMode, Warning, TEXT("RestartPlayer: Player start not found, using last start spot"));
-		}
-	}
-
+	
+	AActor* StartSpot = FindPlayerStart(NewPlayer);
 	RestartPlayerAtPlayerStart(NewPlayer, StartSpot);
 }
 
@@ -87,55 +58,29 @@ void AZZBaseGameMode::InitStartSpot_Implementation(AActor* StartSpot, AControlle
 
 AActor* AZZBaseGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
 {
-	//TODO: 이렇게 하기보다는 플레이어의 팀에 따라서 미리 저장해둔 플레이어 스타트 중 겹치지 않는 플레이어 스타트를 찾아서 리턴하도록 하고,
-	// 팀이 없거나 하는 경우에는 간단히 Super::FindPlayerStart_Implementation을 호출해주는 편이 나을 것 같습니다.
-	UWorld* World = GetWorld();
-
-	// If incoming start is specified, then just use it
-	if (!IncomingName.IsEmpty())
+	if (const auto PlayerState = Player->GetPlayerState<AZZBasePlayerState>())
 	{
-		const FName IncomingPlayerStartTag = FName(*IncomingName);
-		for (TActorIterator<APlayerStart> It(World); It; ++It)
+		const auto Faction = PlayerState->GetFaction();
+		FString SpawnTag;
+		switch (Faction)
 		{
-			APlayerStart* Start = *It;
-			if (Start && Start->PlayerStartTag == IncomingPlayerStartTag)
-			{
-				if (const auto Capsule = Start->GetCapsuleComponent())
-				{
-					TSet<AActor*> OverlappingActors;
-					Capsule->GetOverlappingActors(OverlappingActors,AZZBaseCharacter::StaticClass());
-					if (OverlappingActors.Num() == 0)
-						return Start;
-				}
-			}
+		case EFaction::Survivor:
+			SpawnTag = SurvivorFactionSpawnTag;
+			break;
+		case EFaction::Raider:
+			SpawnTag = RaiderFactionSpawnTag;
+			break;
+		case EFaction::Zombie:
+			SpawnTag = ZombieFactionSpawnTag;
+			break;
+		default:
+			break;
 		}
+
+		return Super::FindPlayerStart_Implementation(Player, SpawnTag);
 	}
 
-	// Always pick StartSpot at start of match
-	if (ShouldSpawnAtStartSpot(Player))
-	{
-		if (AActor* PlayerStartSpot = Player->StartSpot.Get())
-		{
-			return PlayerStartSpot;
-		}
-		else
-		{
-			UE_LOG(LogGameMode, Error, TEXT("FindPlayerStart: ShouldSpawnAtStartSpot returned true but the Player StartSpot was null."));
-		}
-	}
-
-	AActor* BestStart = ChoosePlayerStart(Player);
-	if (BestStart == nullptr)
-	{
-		// No player start found
-		UE_LOG(LogGameMode, Log, TEXT("FindPlayerStart: PATHS NOT DEFINED or NO PLAYERSTART with positive rating"));
-
-		// This is a bit odd, but there was a complex chunk of code that in the end always resulted in this, so we may as well just 
-		// short cut it down to this.  Basically we are saying spawn at 0,0,0 if we didn't find a proper player start
-		BestStart = World->GetWorldSettings();
-	}
-
-	return BestStart;
+	return Super::FindPlayerStart_Implementation(Player, IncomingName);
 }
 
 void AZZBaseGameMode::BeginPlay()
@@ -156,19 +101,6 @@ void AZZBaseGameMode::PostLogin(APlayerController* NewPlayer)
 	RegisterPlayer(NewPlayer);
 }
 
-// void AZZBaseGameMode::OnMatchStateSet()
-// {
-// 	Super::OnMatchStateSet();
-// 	if (MatchState == MatchState::IsSelectCharacter)
-// 	{
-// 		HandleMatchIsSelectCharacter();
-// 	}
-// 	else if(MatchState == MatchState::IsIntro)
-// 	{
-// 		HandleMatchIsIntro();
-// 	}
-// }
-
 void AZZBaseGameMode::HandleMatchIsWaitingToStart()
 {
 	Super::HandleMatchIsWaitingToStart();
@@ -178,12 +110,6 @@ bool AZZBaseGameMode::ReadyToStartMatch_Implementation()
 {
 	return Super::ReadyToStartMatch_Implementation();
 }
-
-// void AZZBaseGameMode::HandleMatchIsSelectCharacter()
-// {
-// 	FTimerHandle TimerHandler;
-// 	//GetWorldTimerManager().SetTimer(TimerHandler, this, &AZZBaseGameMode::StartMatch, 10.0f, false);
-// }
 
 void AZZBaseGameMode::HandleMatchIsIntro()
 {
@@ -256,8 +182,8 @@ void AZZBaseGameMode::OnPlayerKilled(AController* VictimController, AController*
 	const auto VictimPlayerState = VictimController->GetPlayerState<AZZBasePlayerState>();
 	if (VictimPlayerState != nullptr) VictimPlayerState->IncreaseDeathCount();
 
-	if (const auto ZZBaseGameState = GetGameState<AZZBaseGameState>())
-		ZZBaseGameState->NotifyPlayerKilled(VictimController->GetPlayerState<APlayerState>(), InstigatorController->GetPlayerState<APlayerState>(), DamageCauser);
+	if (const auto ZZAutoBaseGameState = GetGameState<AZZBaseGameState>())
+		ZZAutoBaseGameState->NotifyPlayerKilled(VictimController->GetPlayerState<APlayerState>(), InstigatorController->GetPlayerState<APlayerState>(), DamageCauser);
 
 	//TODO: ShouldRespawn 함수는 사망한 플레이어가 부활할 수 있는지 여부를 검사하기 위해 기획되었습니다. 따라서 매개변수로 플레이어 스테이트나 컨트롤러를 받아야 합니다.
 	if (ShouldRespawn())
@@ -272,20 +198,6 @@ void AZZBaseGameMode::OnPlayerKilled(AController* VictimController, AController*
 		VictimPlayerState->SetRespawnTimer(-1.0f);
 	}
 }
-
-// void AZZBaseGameMode::StartSelectCharacter()
-// {
-// 	if (MatchState != MatchState::WaitingToStart) return;
-//
-// 	SetMatchState(MatchState::IsSelectCharacter);
-// }
-//
-// void AZZBaseGameMode::StartIntro()
-// {
-// 	if (MatchState != MatchState::IsSelectCharacter) return;
-//
-// 	SetMatchState(MatchState::IsIntro);
-// }
 
 void AZZBaseGameMode::DelayedEndedGame()
 {
@@ -303,14 +215,32 @@ bool AZZBaseGameMode::HasMatchStarted() const
 	return Super::HasMatchStarted();
 }
 
+// UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
+// {
+// 	if (const auto PlayerState = InController->GetPlayerState<AZZBasePlayerState>())
+// 		if (CharacterClasses.Contains(PlayerState->GetCharacterName()))
+// 			return CharacterClasses[PlayerState->GetCharacterName()];
+//
+// 	return Super::GetDefaultPawnClassForController_Implementation(InController);
+// }
 UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
+	// 플레이어 상태에서 캐릭터 이름 가져오기
 	if (const auto PlayerState = InController->GetPlayerState<AZZBasePlayerState>())
-		if (CharacterClasses.Contains(PlayerState->GetCharacterName()))
-			return CharacterClasses[PlayerState->GetCharacterName()];
+	{
+		const FName CharacterName = PlayerState->GetCharacterName();
 
+		// 캐릭터 이름에 따라 스폰할 클래스 결정
+		if (CharacterClasses.Contains(CharacterName))
+		{
+			return CharacterClasses[CharacterName];
+		}
+	}
+
+	// 기본 캐릭터 클래스 반환
 	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
+
 
 void AZZBaseGameMode::RespawnPlayer(AController* KilledController)
 {
@@ -330,6 +260,42 @@ bool AZZBaseGameMode::ShouldRespawn()
 {
 	return true;
 }
+
+// void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
+// {
+// 	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
+// 	{
+// 		BasePlayerState->OnCharacterNameChanged.AddLambda(
+// 			[this, NewPlayer](const FName& ArgCharacterName)
+// 			{
+// 				if (IsMatchInProgress())
+// 				{
+// 					if (auto AutoPlayerPawn = NewPlayer->GetPawn())
+// 					{
+// 						NewPlayer->UnPossess();
+// 						AutoPlayerPawn->Destroy();
+// 						RestartPlayer(NewPlayer);
+// 					}
+// 				}
+// 			});
+//
+// 		BasePlayerState->GetZZAttributeSet()->OnPlayerKill.AddUObject(this, &AZZBaseGameMode::OnPlayerKilled);
+// 	}
+// 	
+// 	ZZBaseGameState = GetWorld()->GetGameState<AZZBaseGameState>();
+// 	if (ZZBaseGameState == nullptr)
+// 	{
+// 		UE_LOG(LogTemp, Warning, TEXT("ZZBaseGameMode_BaseGameState is null."));
+// 	}
+//
+// 	CurrentPlayerNum = ZZBaseGameState->PlayerArray.Num();
+// 	
+// 	if (CurrentPlayerNum >= ZZBaseGameState->GetMaximumPlayers())
+// 	{
+// 		GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,
+// 			CharacterSelectStartDelay, false);
+// 	}
+// }
 
 void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 {
@@ -362,11 +328,11 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 		UE_LOG(LogTemp, Warning, TEXT("ZZBaseGameMode_BaseGameState is null."));
 	}
 
-	CurrentPlayerNum = BaseGameState->PlayerArray.Num();
-	
-	if (CurrentPlayerNum >= BaseGameState->GetMaximumPlayers())
-	{
-		GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,
-			CharacterSelectStartDelay, false);
-	}
+	// CurrentPlayerNum = BaseGameState->PlayerArray.Num();
+	//
+	// if (CurrentPlayerNum >= BaseGameState->GetMaximumPlayers())
+	// {
+	// 	GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,
+	// 		CharacterSelectStartDelay, false);
+	// }
 }

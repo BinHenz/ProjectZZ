@@ -22,6 +22,8 @@ DECLARE_EVENT_TwoParams(AZZBasePlayerState, FCharacterNameChangeSignature, AZZBa
 
 DECLARE_EVENT_OneParam(AZZBasePlayerState, FCountInfoSignature, const uint16&)
 
+DECLARE_EVENT_OneParam(AZZBasePlayerState, FPlayerNameSignature, const FString&)
+
 DECLARE_EVENT_OneParam(AZZBasePlayerState, FOwnerChangeSignature, AActor*)
 
 DECLARE_DELEGATE_OneParam(FRespawnTimerDelegate, AController*)
@@ -44,6 +46,7 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
 						 AActor* DamageCauser) override;
+	virtual void OnRep_PlayerName() override;
 	virtual void SetOwner(AActor* NewOwner) override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -98,8 +101,10 @@ public:
 
 	// 플레이어의 킬 횟수를 늘립니다.
 	virtual void IncreaseKillCount();
-
+	
 	virtual void OnKillOtherPlayer();
+
+	void SetAlly(const bool& Ally);
 
 protected:
 	// 현재 서버의 시간을 가져옵니다.
@@ -211,6 +216,9 @@ public:
 
 	// 플레이어의 누적 사망 횟수가 변경되는 경우 호출됩니다. 매개변수로 변경된 누적 사망 횟수를 받습니다.
 	FCountInfoSignature OnDeathCountChanged;
+
+	// 플레이어의 이름이 변경될 때 호출됩니다. 매개변수로 변경된 플레이어의 이름을 받습니다.
+	FPlayerNameSignature OnPlayerNameChanged;
 
 	// 오너가 변경될 때 호출됩니다. 매개변수로 변경된 오너의 AActor 포인터를 받습니다.
 	FOwnerChangeSignature OnOwnerChanged;

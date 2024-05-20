@@ -16,9 +16,6 @@
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
-//////////////////////////////////////////////////////////////////////////
-// AZZBaseCharacter
-
 AZZBaseCharacter::AZZBaseCharacter()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
@@ -57,6 +54,14 @@ AZZBaseCharacter::AZZBaseCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	MaxHealth = 100.f;
+	PrimaryActorTick.bCanEverTick = true;
+	FactionObjectTypeMap.Emplace(EFaction::Survivor, ECC_Pawn);
+	FactionObjectTypeMap.Emplace(EFaction::Raider, ECC_Pawn);
+	FactionObjectTypeMap.Emplace(EFaction::Zombie, ECC_Pawn);
+	bIsAlive = true;
+	CharacterName = TEXT("Player");
 }
 
 void AZZBaseCharacter::BeginPlay()
@@ -141,9 +146,6 @@ void AZZBaseCharacter::ClearAbilities()
 	UE_LOG(LogTemp, Log, TEXT("%s Clear Abilities"), *GetName());
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
 void AZZBaseCharacter::SetAliveState_Implementation(bool IsAlive)
 {
 	bIsAlive = IsAlive;
@@ -162,6 +164,10 @@ void AZZBaseCharacter::SetAliveState_Implementation(bool IsAlive)
 	}
 	if (HasAuthority())
 		GetCharacterMovement()->SetMovementMode(IsAlive ? MOVE_Walking : MOVE_None);
+}
+
+void AZZBaseCharacter::SetAlly(const bool& IsAlly)
+{
 }
 
 void AZZBaseCharacter::Move(const FInputActionValue& Value)

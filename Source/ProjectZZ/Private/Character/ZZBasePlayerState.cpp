@@ -16,6 +16,7 @@ void AZZBasePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AZZBasePlayerState, Health);
+	DOREPLIFETIME(AZZBasePlayerState, Faction);
 	DOREPLIFETIME(AZZBasePlayerState, RespawnTime);
 	DOREPLIFETIME(AZZBasePlayerState, CharacterName);
 	DOREPLIFETIME(AZZBasePlayerState, DeathCount);
@@ -24,11 +25,17 @@ void AZZBasePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 AZZBasePlayerState::AZZBasePlayerState()
 {
+	CharacterName = TEXT("Player");
 	bRecentAliveState = true;
 	bIsPawnSettedOnce = false;
 	OnPawnSet.AddUniqueDynamic(this, &AZZBasePlayerState::OnPawnSetCallback);
 	PrimaryActorTick.bCanEverTick = true;
 
+	static ConstructorHelpers::FClassFinder<UHealthWidget> HealthFinder(
+		TEXT("/Game/Blueprints/UMG/BP_HealthWidget.BP_HealthWidget_C"));
+
+	HealthWidgetClass = HealthFinder.Class;
+	
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
 
 	ZZAttributeSet = CreateDefaultSubobject<UZZAttributeSet>(TEXT("ZZAttributeSet"));
@@ -58,10 +65,15 @@ float AZZBasePlayerState::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	Health = FMath::Clamp(Health, 0, GetMaxHealth());
 	OnHealthChanged.Broadcast(Health);
 
-	// if (Damage > 0.f) NoticePlayerHit(*DamageCauser->GetName(), DamageCauser->GetActorLocation(), Damage);
 	if (IsDead) OnPlayerKilled.Broadcast(GetOwningController(), EventInstigator, DamageCauser);
 
 	return Damage;
+}
+
+void AZZBasePlayerState::OnRep_PlayerName()
+{
+	Super::OnRep_PlayerName();
+	OnPlayerNameChanged.Broadcast(GetPlayerName());
 }
 
 void AZZBasePlayerState::BeginPlay()
@@ -80,6 +92,7 @@ void AZZBasePlayerState::CopyProperties(APlayerState* PlayerState)
 	if (const auto Other = Cast<AZZBasePlayerState>(PlayerState))
 	{
 		Other->Health = Health;
+		Other->Faction = Faction;
 		Other->RespawnTime = RespawnTime;
 		Other->CharacterName = CharacterName;
 		Other->DeathCount = DeathCount;
@@ -145,9 +158,14 @@ void AZZBasePlayerState::Tick(float DeltaSeconds)
 
 void AZZBasePlayerState::SetFaction(const EFaction& DesireFaction)
 {
-	if (Faction == DesireFaction) return;
+	if (Faction == DesireFaction)
+		return;
+	
 	Faction = DesireFaction;
-	if (const auto Character = GetPawn<AZZBaseCharacter>()) Character->SetFaction(Faction);
+	
+	if (const auto Character = GetPawn<AZZBaseCharacter>())
+		Character->SetFaction(Faction);
+	
 	OnFactionChanged.Broadcast(Faction);
 }
 
@@ -200,6 +218,13 @@ void AZZBasePlayerState::OnKillOtherPlayer()
 	}
 }
 
+void AZZBasePlayerState::SetAlly(const bool& Ally)
+{
+	bIsAlly = Ally;
+	if (const auto Character = GetPawn<AZZBaseCharacter>())
+		Character->SetAlly(bIsAlly);
+}
+
 float AZZBasePlayerState::GetServerTime() const
 {
 	if (const auto World = GetWorld())
@@ -226,9 +251,9 @@ bool AZZBasePlayerState::ShouldTakeDamage(float DamageAmount, FDamageEvent const
 	// EventInstigator가 nullptr인 경우 글로벌 데미지이거나 어떤 정의할 수 없는 데미지이지만 일단 받아야하는 데미지라고 판단합니다.
 	if (!EventInstigator) return true;
 
-	// 데미지가 피해인 경우 본인 이외 경우에만 받고, 데미지가 힐인 경우 본인인 경우에만 받습니다.
+	// 데미지가 피해인 경우 다른 진영일때만 받고, 데미지가 힐인 경우 같은 진영일때만 받습니다.
 	const auto Other = EventInstigator->GetPlayerState<AZZBasePlayerState>();
-	return (DamageAmount > 0.f && !Other) || (DamageAmount < 0.f && Other);
+	return (DamageAmount > 0.f && !IsSameFaction(Other)) || (DamageAmount < 0.f && IsSameFaction(Other));
 }
 
 void AZZBasePlayerState::InitializeStatus()
@@ -270,6 +295,12 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 	if(bIsPawnSettedOnce) return;
 	bIsPawnSettedOnce = true;
 
+	if(const auto OldCharacter = Cast<AZZBaseCharacter>(OldPawn))
+	{
+		OldCharacter->SetFaction(EFaction::None);
+		OnAliveStateChanged.RemoveAll(OldCharacter);
+	}
+
 	if (const auto OldAbilityInterface = Cast<IRegisterAbilityInterface>(OldPawn);
 		HasAuthority() && OldAbilityInterface)
 	{
@@ -286,6 +317,9 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 
 	if (const auto Character = Cast<AZZBaseCharacter>(NewPawn))
 	{
+		if (Faction != EFaction::None)
+			Character->SetFaction(Faction);
+		
 		if (HealthWidget.IsValid())
 		{
 			HealthWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -297,62 +331,6 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 	{
 		if (HealthWidget.IsValid()) HealthWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
-	
-	/*
-	// 	Character->SetStencilMask(UniqueRenderMask);
-	// 	Character->SetAlly(bIsAlly);
-	//
-	// 	if (const auto CharacterWidgetClass = Character->GetCharacterWidgetClass(); CharacterWidgetClass &&
-	// 		GetPlayerController() && GetPlayerController()->IsLocalController())
-	// 	{
-	// 		CharacterWidget = CreateWidget<UCharacterWidget>(GetPlayerController(), CharacterWidgetClass);
-	// 		if (CharacterWidget)
-	// 		{
-	// 			CharacterWidget->AddToViewport(-5);
-	// 			BindAllSkillToWidget();
-	//
-	// 			if (CharacterWidget->GetGamePlayBulletWidget())
-	// 			{
-	// 				AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetMaxAmmoAttribute()).
-	// 				               AddUObject(CharacterWidget->GetGamePlayBulletWidget(),
-	// 				                          &UGamePlayBulletWidget::OnChangeMaxBulletAttribute);
-	// 				CharacterWidget->GetGamePlayBulletWidget()->SetMaxBullet(ZZAttributeSet->GetMaxAmmo());
-	// 				
-	// 				AbilitySystem->GetGameplayAttributeValueChangeDelegate(
-	// 					               ZZAttributeSet->GetCurrentAmmoAttribute()).
-	// 				               AddUObject(CharacterWidget->GetGamePlayBulletWidget(),
-	// 				                          &UGamePlayBulletWidget::OnChangeCurrentBulletAttribute);;
-	// 				CharacterWidget->GetGamePlayBulletWidget()->SetRemainBullet(ZZAttributeSet->GetCurrentAmmo());
-	// 			}
-	//
-	// 			if (const auto BulletSpreadComponent = Character->GetBulletSpread(); BulletSpreadComponent &&
-	// 				CharacterWidget->GetCrossHairWidget())
-	// 			{
-	// 				BulletSpreadComponent->OnChangeBulletSpreadAmountSignature.AddUObject(
-	// 					CharacterWidget->GetCrossHairWidget(), &UDynamicCrossHairWidget::OnChangeBulletSpreadAmount);
-	// 			}
-	//
-	// 			if(CharacterWidget->GetSkillWidget())
-	// 			{
-	// 				CharacterWidget->GetSkillWidget()->SetTeam(GetTeam());
-	// 			}
-	//
-	// 			if(CharacterWidget->GetKillStreakWidget())
-	// 			{
-	// 				OnKillStreakChanged.AddWeakLambda(CharacterWidget->GetKillStreakWidget(),[&](const uint16 NewKillStreak)
-	// 				{
-	// 					CharacterWidget->GetKillStreakWidget()->OnChangeKillStreak(NewKillStreak);
-	// 				});
-	// 			}
-	//
-	// 			if (IsValid(AimOccupyProgressWidget))
-	// 			{
-	// 				AimOccupyProgressWidget->SetCurrentTeam(GetTeam());
-	// 			}
-	// 		}
-	// 	}
-	// }
-	*/
 	
 	BroadcastMaxHealthChanged();
 	
@@ -510,8 +488,6 @@ void AZZBasePlayerState::OnGameplayEffectAppliedDelegateToTargetCallback(
 			return;
 		}
 	}
-
-	// SpecApplied.GetEffectContext().GetInstigator()
 }
 
 void AZZBasePlayerState::OnChangeSkillStackAttribute(const FOnAttributeChangeData& NewValue)

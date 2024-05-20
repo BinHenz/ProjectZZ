@@ -72,6 +72,9 @@ public:
 	// 캐릭터의 생존 상태를 변경합니다.
 	UFUNCTION(BlueprintNativeEvent)
 	void SetAliveState(bool IsAlive);
+
+	void SetAlly(const bool& IsAlly);
+
 	
 protected:
 

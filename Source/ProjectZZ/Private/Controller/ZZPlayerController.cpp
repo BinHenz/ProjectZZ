@@ -22,10 +22,7 @@ void AZZPlayerController::UnbindAllAndBindMenu(UEnhancedInputComponent* const& E
 	EnhancedInputComponent->ClearActionBindings();
 	EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Triggered, this,
 									   &AZZPlayerController::MenuHandler);
-	// EnhancedInputComponent->BindAction(ShowScoreAction, ETriggerEvent::Triggered, this,
-	// 								   &AZZPlayerController::ShowScoreBoardAndTabMinimap);
-	// EnhancedInputComponent->BindAction(HideScoreAction, ETriggerEvent::Triggered, this,
-	// 								   &AZZPlayerController::HideScoreBoardAndTabMinimap);
+
 }
 
 AZZPlayerController::AZZPlayerController()
@@ -49,8 +46,6 @@ AZZPlayerController::AZZPlayerController()
 
 	// if (ContextFinder.Succeeded()) InterfaceInputContext = ContextFinder.Object;
 	// if (MenuFinder.Succeeded()) MenuAction = MenuFinder.Object;
-	// if (ShowScoreFinder.Succeeded()) ShowScoreAction = ShowScoreFinder.Object;
-	// if (HideScoreFinder.Succeeded()) HideScoreAction = HideScoreFinder.Object;
 
 	ExitLevel = FSoftObjectPath(TEXT("/Script/Engine.World'/Game/MAEOakForest/Maps/Map_Oak_Forest_A.Map_Oak_Forest_A'"));
 }

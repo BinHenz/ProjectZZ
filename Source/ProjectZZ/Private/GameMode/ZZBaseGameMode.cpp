@@ -14,8 +14,8 @@
 
 namespace MatchState
 {
-	// const FName IsSelectCharacter = FName(TEXT("IsSelectCharacter"));
-	// const FName IsIntro = FName(TEXT("IsIntro"));
+	const FName IsSelectCharacter = FName(TEXT("IsSelectCharacter"));
+	const FName IsIntro = FName(TEXT("IsIntro"));
 }
 
 const FString AZZBaseGameMode::SurvivorFactionSpawnTag = FString(TEXT("SurvivorFactionSpawnZone"));
@@ -109,6 +109,10 @@ void AZZBaseGameMode::HandleMatchIsWaitingToStart()
 bool AZZBaseGameMode::ReadyToStartMatch_Implementation()
 {
 	return Super::ReadyToStartMatch_Implementation();
+}
+
+void AZZBaseGameMode::HandleMatchIsSelectCharacter()
+{
 }
 
 void AZZBaseGameMode::HandleMatchIsIntro()
@@ -209,34 +213,17 @@ bool AZZBaseGameMode::HasMatchStarted() const
 {
 	//TODO: 취향차이지만 아래의 주석과 같이 간단히 표현할 수도 있습니다.
 	// return MatchState == MatchState::IsSelectCharacter ? false : Super::HasMatchStarted();
-	// if (MatchState == MatchState::IsSelectCharacter || MatchState == MatchState::IsIntro) return false;
-
+	if (MatchState == MatchState::IsSelectCharacter || MatchState == MatchState::IsIntro) return false;
 	
 	return Super::HasMatchStarted();
 }
 
-// UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
-// {
-// 	if (const auto PlayerState = InController->GetPlayerState<AZZBasePlayerState>())
-// 		if (CharacterClasses.Contains(PlayerState->GetCharacterName()))
-// 			return CharacterClasses[PlayerState->GetCharacterName()];
-//
-// 	return Super::GetDefaultPawnClassForController_Implementation(InController);
-// }
 UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	// 플레이어 상태에서 캐릭터 이름 가져오기
 	if (const auto PlayerState = InController->GetPlayerState<AZZBasePlayerState>())
-	{
-		const FName CharacterName = PlayerState->GetCharacterName();
-
-		// 캐릭터 이름에 따라 스폰할 클래스 결정
-		if (CharacterClasses.Contains(CharacterName))
-		{
-			return CharacterClasses[CharacterName];
-		}
-	}
-
+		if (CharacterClasses.Contains(PlayerState->GetCharacterName()))
+			return CharacterClasses[PlayerState->GetCharacterName()];
+	
 	// 기본 캐릭터 클래스 반환
 	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
@@ -261,65 +248,42 @@ bool AZZBaseGameMode::ShouldRespawn()
 	return true;
 }
 
-// void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
-// {
-// 	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
-// 	{
-// 		BasePlayerState->OnCharacterNameChanged.AddLambda(
-// 			[this, NewPlayer](const FName& ArgCharacterName)
-// 			{
-// 				if (IsMatchInProgress())
-// 				{
-// 					if (auto AutoPlayerPawn = NewPlayer->GetPawn())
-// 					{
-// 						NewPlayer->UnPossess();
-// 						AutoPlayerPawn->Destroy();
-// 						RestartPlayer(NewPlayer);
-// 					}
-// 				}
-// 			});
-//
-// 		BasePlayerState->GetZZAttributeSet()->OnPlayerKill.AddUObject(this, &AZZBaseGameMode::OnPlayerKilled);
-// 	}
-// 	
-// 	ZZBaseGameState = GetWorld()->GetGameState<AZZBaseGameState>();
-// 	if (ZZBaseGameState == nullptr)
-// 	{
-// 		UE_LOG(LogTemp, Warning, TEXT("ZZBaseGameMode_BaseGameState is null."));
-// 	}
-//
-// 	CurrentPlayerNum = ZZBaseGameState->PlayerArray.Num();
-// 	
-// 	if (CurrentPlayerNum >= ZZBaseGameState->GetMaximumPlayers())
-// 	{
-// 		GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,
-// 			CharacterSelectStartDelay, false);
-// 	}
-// }
-
 void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 {
 	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("BasePlayerState = NewPlayer->GetPlayerState"));
+	
 		//TODO: NewPlayer를 캡쳐할 필요 없이 ArgBasePlayerState를 사용하면 됩니다.
-		BasePlayerState->OnCharacterNameChanged.AddLambda(
-			[this, NewPlayer](AZZBasePlayerState* ArgBasePlayerState, const FName& ArgCharacterName){
-
+		BasePlayerState->OnCharacterNameChanged.AddLambda
+		(
+			[this, NewPlayer](AZZBasePlayerState* ArgBasePlayerState, const FName& ArgCharacterName)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BasePlayerState->OnCharacterNameChanged.AddLambda"));
+	
 				//TODO: 매치스테이트는 게임모드에도 있습니다. IsMatchInProgress()를 사용하면 됩니다.
-				if (GetGameState<AZZBaseGameState>()->GetMatchState() == MatchState::InProgress)
+				if (IsMatchInProgress())
 				{
-					//TODO: 사망한 상태에서 캐릭터를 변경하는 경우 즉시 부활하는 버그를 유발합니다.
-					if (auto PlayerPawn = NewPlayer->GetPawn())
+					UE_LOG(LogTemp, Warning, TEXT("GetGameState<AZZBaseGameState>()->GetMatchState() == MatchState::InProgress"));
+	
+					if (NewPlayer->GetPlayerState<AZZBasePlayerState>()->IsAlive())
 					{
-						NewPlayer->UnPossess();
-						PlayerPawn->Destroy();
-						RestartPlayer(NewPlayer);
+						if (auto PlayerPawn = NewPlayer->GetPawn())
+						{
+							UE_LOG(LogTemp, Warning, TEXT("auto PlayerPawn = NewPlayer->GetPawn"));
+	
+							NewPlayer->UnPossess();
+							PlayerPawn->Destroy();
+							RestartPlayer(NewPlayer);
+						}
 					}
 				}
-			});
+			}
+		);
 
 		
 		BasePlayerState->GetZZAttributeSet()->OnPlayerKill.AddUObject(this, &AZZBaseGameMode::OnPlayerKilled);
+		UE_LOG(LogTemp, Warning, TEXT("BasePlayerState->GetZZAttributeSet()->OnPlayerKill"));
 	}
 
 	BaseGameState = GetWorld()->GetGameState<AZZBaseGameState>();
@@ -329,7 +293,7 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 	}
 
 	// CurrentPlayerNum = BaseGameState->PlayerArray.Num();
-	//
+	
 	// if (CurrentPlayerNum >= BaseGameState->GetMaximumPlayers())
 	// {
 	// 	GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,

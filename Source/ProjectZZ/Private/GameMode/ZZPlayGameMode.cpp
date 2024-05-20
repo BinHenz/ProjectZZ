@@ -3,6 +3,8 @@
 
 #include "GameMode/ZZPlayGameMode.h"
 
+#include "Controller/ZZPlayerMovableController.h"
+
 AZZPlayGameMode::AZZPlayGameMode()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -19,10 +21,33 @@ void AZZPlayGameMode::BeginPlay()
 	Super::BeginPlay();
 	PlayGameState = GetGameState<AZZPlayGameState>();
 	UE_LOG(LogTemp, Warning, TEXT("ZZ Play Game Mode Begin Play"));
+
+	StartMatch();
+
+}
+
+void AZZPlayGameMode::HandleMatchHasStarted()
+{
+	Super::HandleMatchHasStarted();
+}
+
+void AZZPlayGameMode::HandleMatchIsSelectCharacter()
+{
+	Super::HandleMatchIsSelectCharacter();
+
+	// TODO : 최대 인원보다 더 많은 인원이 방에 입장했을 시에는, 일단 모든 팀원들을 팀배정을 해줍니다.
+	if (PlayGameState->GetMaximumPlayers() == PlayGameState->PlayerArray.Num())
+	{
+		AssignFaction(PlayGameState->GetMaximumPlayers());
+	}
+	else 
+	{
+		AssignFaction(PlayGameState->PlayerArray.Num());
+	}
 }
 
 void AZZPlayGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
-	FString& ErrorMessage)
+                               FString& ErrorMessage)
 {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 	if(!PlayGameState) return;

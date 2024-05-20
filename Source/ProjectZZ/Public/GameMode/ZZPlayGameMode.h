@@ -22,6 +22,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void HandleMatchHasStarted() override;
+	virtual void HandleMatchIsSelectCharacter() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	
 private:
@@ -29,5 +31,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AZZPlayGameState> PlayGameState;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AZZPlayerMovableController> PlayControllerClass;
+
 	
 };

@@ -197,6 +197,18 @@ void AZZBasePlayerState::MakeAlive()
 	SetAliveState(true);
 }
 
+void AZZBasePlayerState::RequestCharacterChange_Implementation(const FName& Name)
+{
+	if (!ShouldChangeCharacterName(Name)) return;
+	CharacterName = Name;
+	OnCharacterNameChanged.Broadcast(this, CharacterName);
+}
+
+bool AZZBasePlayerState::RequestCharacterChange_Validate(const FName& Name)
+{
+	return true;
+}
+
 void AZZBasePlayerState::IncreaseDeathCount()
 {
 	OnDeathCountChanged.Broadcast(++DeathCount);
@@ -341,6 +353,11 @@ void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn,
 		AbilitySystem->GetGameplayAttributeValueChangeDelegate(ZZAttributeSet->GetMaxHealthAttribute()).AddUObject(
 			HealthWidget.Get(), &UHealthWidget::SetMaximumHealthAttribute);
 	}
+}
+
+bool AZZBasePlayerState::ShouldChangeCharacterName(const FName& Name)
+{
+	return true;
 }
 
 float AZZBasePlayerState::GetMaxHealth() const

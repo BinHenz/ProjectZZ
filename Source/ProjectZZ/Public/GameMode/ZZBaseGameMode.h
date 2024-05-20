@@ -5,6 +5,12 @@
 #include "ZZBaseGameState.h"
 #include "ZZBaseGameMode.generated.h"
 
+namespace MatchState
+{
+	extern const FName IsSelectCharacter; //캐릭터를 선택할때의 상태입니다, WaitingToStart 다음 상태이며, 이 상태가 끝나면 InProgress로 넘어갑니다
+	extern const FName IsIntro;//캐릭터 선택 이후 게임 시작 전 인트로 상태입니다. 인트로 위젯이 출력됩니다.
+}
+
 /**
  * 
  */
@@ -47,6 +53,9 @@ protected:
 	virtual void HandleMatchIsWaitingToStart() override;
 	virtual bool ReadyToStartMatch_Implementation() override;
 
+	// 캐릭터 선택 스테이트로 넘어갈 때 호출되는 함수
+	virtual void HandleMatchIsSelectCharacter();
+
 	// 인트로 화면으로 넘어갈 때 호출되는 함수;
 	virtual void HandleMatchIsIntro();
 
@@ -83,8 +92,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TMap<FName, TSubclassOf<class AZZBaseCharacter>> CharacterClasses;
 
-	UPROPERTY(EditDefaultsOnly)
-	float CharacterSelectStartDelay;
+	// UPROPERTY(EditDefaultsOnly)
+	// float CharacterSelectStartDelay;
 	
 	FTimerHandle TimerHandle_DelayedEnded;
 	float MatchEndDelay = 10.0f;

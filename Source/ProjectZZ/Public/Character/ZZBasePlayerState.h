@@ -86,6 +86,14 @@ public:
 	// 이 플레이어를 생존상태로 변경합니다.
 	void MakeAlive();
 
+	/**
+	* @brief 서버에게 캐릭터 변경을 요청합니다. 픽창에서는 캐릭터가 실제로 변경되지는 않고 게임이 시작될 때 요청된 캐릭터가 생성되며,
+	* 게임이 진행중일 때는 실제로 캐릭터가 변경됩니다.
+	* @param Name 변경이 요청된 캐릭터 이름입니다. 이 값을 통해 데이터 테이블에서 캐릭터를 찾아 생성할 수 있습니다.
+	*/
+	UFUNCTION(Server, Reliable, WithValidation)
+	void RequestCharacterChange(const FName& Name);
+
 	// 현재 플레이어의 누적 킬 횟수를 가져옵니다.
 	const uint16& GetKillCount() const { return KillCount; }
 
@@ -130,6 +138,13 @@ protected:
 	UFUNCTION()
 	virtual void OnPawnSetCallback(APlayerState* Player, APawn* NewPawn, APawn* OldPawn);
 
+	/**
+	* @brief 캐릭터 이름을 변경할 수 있는지 여부를 조사합니다.
+	* @param Name 변경하려는 이름입니다.
+	* @return true이면 캐릭터 이름을 변경할 수 있는 것으로 간주합니다.
+	*/
+	virtual bool ShouldChangeCharacterName(const FName& Name);
+	
 	// 최대 체력을 가져옵니다.
 	virtual float GetMaxHealth() const;
 

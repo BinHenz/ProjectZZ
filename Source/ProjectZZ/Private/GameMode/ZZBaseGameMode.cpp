@@ -36,14 +36,33 @@ void AZZBaseGameMode::RestartPlayer(AController* NewPlayer)
 	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
 		return;
 
-	// 플레이어 진영을 생존자로 설정
-	if (auto PlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
+	if (const auto PlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
 	{
-		PlayerState->SetFaction(EFaction::Survivor);
+		const auto Faction = PlayerState->GetFaction();
+		FString SpawnTag;
+		switch (Faction)
+		{
+		case EFaction::Survivor:
+			SpawnTag = SurvivorFactionSpawnTag;
+			UE_LOG(LogTemp, Warning, TEXT("SurvivorFactionSpawnTag."));
+			break;
+		case EFaction::Raider:
+			SpawnTag = RaiderFactionSpawnTag;
+			UE_LOG(LogTemp, Warning, TEXT("RaiderFactionSpawnTag."));
+			break;
+		case EFaction::Zombie:
+			SpawnTag = ZombieFactionSpawnTag;
+			UE_LOG(LogTemp, Warning, TEXT("ZombieFactionSpawnTag."));
+			break;
+		default:
+			SpawnTag = TEXT("InitSpawnZone");
+			UE_LOG(LogTemp, Warning, TEXT("InitSpawnZone."));
+			break;
+		}
+		
+		AActor* StartSpot = FindPlayerStart(NewPlayer, SpawnTag);
+		RestartPlayerAtPlayerStart(NewPlayer, StartSpot);
 	}
-	
-	AActor* StartSpot = FindPlayerStart(NewPlayer);
-	RestartPlayerAtPlayerStart(NewPlayer, StartSpot);
 }
 
 void AZZBaseGameMode::InitStartSpot_Implementation(AActor* StartSpot, AController* NewPlayer)
@@ -58,27 +77,28 @@ void AZZBaseGameMode::InitStartSpot_Implementation(AActor* StartSpot, AControlle
 
 AActor* AZZBaseGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
 {
-	if (const auto PlayerState = Player->GetPlayerState<AZZBasePlayerState>())
-	{
-		const auto Faction = PlayerState->GetFaction();
-		FString SpawnTag;
-		switch (Faction)
-		{
-		case EFaction::Survivor:
-			SpawnTag = SurvivorFactionSpawnTag;
-			break;
-		case EFaction::Raider:
-			SpawnTag = RaiderFactionSpawnTag;
-			break;
-		case EFaction::Zombie:
-			SpawnTag = ZombieFactionSpawnTag;
-			break;
-		default:
-			break;
-		}
-
-		return Super::FindPlayerStart_Implementation(Player, SpawnTag);
-	}
+	// if (const auto PlayerState = Player->GetPlayerState<AZZBasePlayerState>())
+	// {
+	// 	const auto Faction = PlayerState->GetFaction();
+	// 	FString SpawnTag;
+	// 	switch (Faction)
+	// 	{
+	// 	case EFaction::Survivor:
+	// 		SpawnTag = SurvivorFactionSpawnTag;
+	// 		break;
+	// 	case EFaction::Raider:
+	// 		SpawnTag = RaiderFactionSpawnTag;
+	// 		break;
+	// 	case EFaction::Zombie:
+	// 		SpawnTag = ZombieFactionSpawnTag;
+	// 		break;
+	// 	default:
+	// 		SpawnTag = TEXT("InitSpawnZone");
+	// 		break;
+	// 	}
+	//
+	// 	return Super::FindPlayerStart_Implementation(Player, SpawnTag);
+	// }
 
 	return Super::FindPlayerStart_Implementation(Player, IncomingName);
 }
@@ -232,6 +252,7 @@ UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AContro
 void AZZBaseGameMode::RespawnPlayer(AController* KilledController)
 {
 	RestartPlayer(KilledController);
+	UE_LOG(LogTemp, Warning, TEXT("RespawnPlayer"));
 
 	if (RespawnEffect)
 	{
@@ -252,26 +273,18 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 {
 	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BasePlayerState = NewPlayer->GetPlayerState"));
-	
 		//TODO: NewPlayer를 캡쳐할 필요 없이 ArgBasePlayerState를 사용하면 됩니다.
 		BasePlayerState->OnCharacterNameChanged.AddLambda
 		(
 			[this, NewPlayer](AZZBasePlayerState* ArgBasePlayerState, const FName& ArgCharacterName)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("BasePlayerState->OnCharacterNameChanged.AddLambda"));
-	
 				//TODO: 매치스테이트는 게임모드에도 있습니다. IsMatchInProgress()를 사용하면 됩니다.
 				if (IsMatchInProgress())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("GetGameState<AZZBaseGameState>()->GetMatchState() == MatchState::InProgress"));
-	
 					if (NewPlayer->GetPlayerState<AZZBasePlayerState>()->IsAlive())
 					{
 						if (auto PlayerPawn = NewPlayer->GetPawn())
 						{
-							UE_LOG(LogTemp, Warning, TEXT("auto PlayerPawn = NewPlayer->GetPawn"));
-	
 							NewPlayer->UnPossess();
 							PlayerPawn->Destroy();
 							RestartPlayer(NewPlayer);
@@ -280,10 +293,8 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 				}
 			}
 		);
-
 		
 		BasePlayerState->GetZZAttributeSet()->OnPlayerKill.AddUObject(this, &AZZBaseGameMode::OnPlayerKilled);
-		UE_LOG(LogTemp, Warning, TEXT("BasePlayerState->GetZZAttributeSet()->OnPlayerKill"));
 	}
 
 	BaseGameState = GetWorld()->GetGameState<AZZBaseGameState>();

@@ -58,12 +58,14 @@ float AZZBasePlayerState::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 {
 	if (!ShouldTakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser)) return 0.f;
 	const auto Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	UE_LOG(LogTemp, Warning, TEXT("Damage %f"), Damage);
 	if (Damage == 0.f) return 0.f;
 
 	Health -= Damage;
 	const auto IsDead = Health <= 0.f;
 	Health = FMath::Clamp(Health, 0, GetMaxHealth());
 	OnHealthChanged.Broadcast(Health);
+	UE_LOG(LogTemp, Warning, TEXT("Health %f"), Health);
 
 	if (IsDead) OnPlayerKilled.Broadcast(GetOwningController(), EventInstigator, DamageCauser);
 
@@ -201,6 +203,7 @@ void AZZBasePlayerState::RequestCharacterChange_Implementation(const FName& Name
 {
 	if (!ShouldChangeCharacterName(Name)) return;
 	CharacterName = Name;
+	UE_LOG(LogTemp, Warning, TEXT("State : %s changed character to %s"), *GetName(), *CharacterName.ToString());
 	OnCharacterNameChanged.Broadcast(this, CharacterName);
 }
 

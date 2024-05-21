@@ -15,6 +15,7 @@ class PROJECTZZ_API AZZPlayerCharacter : public AZZBaseCharacter
 	GENERATED_BODY()
 
 public:
+	AZZPlayerCharacter();
 
 protected:
 	

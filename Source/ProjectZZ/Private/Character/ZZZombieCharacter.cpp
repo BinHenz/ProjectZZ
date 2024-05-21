@@ -6,6 +6,8 @@
 AZZZombieCharacter::AZZZombieCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	CharacterName = TEXT("Zombie");
+	SetFaction(EFaction::Zombie);
 	AttributeSet = CreateDefaultSubobject<UZZAbilitySet>(TEXT("ZZAttributeSet"));
 
 }

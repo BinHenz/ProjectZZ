@@ -7,7 +7,7 @@ AZZPlayGameState::AZZPlayGameState()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	ClientFaction = EFaction::Survivor;
+	ClientFaction = EFaction::None;
 }
 
 void AZZPlayGameState::AddPlayerState(APlayerState* PlayerState)

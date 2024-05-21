@@ -25,12 +25,27 @@ protected:
 	virtual void HandleMatchHasStarted() override;
 	virtual void HandleMatchIsSelectCharacter() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
-	
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	void HandleKillCountChanged(const uint16& NewKillCount);
+
 private:
 	void AssignFaction(const uint8 PlayerCount) const;
 
+	UPROPERTY(EditDefaultsOnly)
+	int32 NumberOfAi;
+	
+	UPROPERTY(EditDefaultsOnly)
+	int32 TargetKills;
+	
 	UPROPERTY()
 	TObjectPtr<AZZPlayGameState> PlayGameState;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AZZZombieAIController> AIControllerClass;
+
+	TArray<TObjectPtr<AZZZombieAIController>> AiControllerArray;
+
+	AController* PlayerController;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AZZPlayerMovableController> PlayControllerClass;

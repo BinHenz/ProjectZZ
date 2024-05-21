@@ -3,3 +3,8 @@
 
 #include "Character/ZZPlayerCharacter.h"
 
+AZZPlayerCharacter::AZZPlayerCharacter()
+{
+	CharacterName = TEXT("Player");
+	SetFaction(EFaction::Survivor);
+}

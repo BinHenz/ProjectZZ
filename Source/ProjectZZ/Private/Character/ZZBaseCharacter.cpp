@@ -61,7 +61,6 @@ AZZBaseCharacter::AZZBaseCharacter()
 	FactionObjectTypeMap.Emplace(EFaction::Raider, ECC_Pawn);
 	FactionObjectTypeMap.Emplace(EFaction::Zombie, ECC_Pawn);
 	bIsAlive = true;
-	CharacterName = TEXT("Player");
 }
 
 void AZZBaseCharacter::BeginPlay()
@@ -105,6 +104,10 @@ void AZZBaseCharacter::SetFaction(const EFaction& Faction)
 	}
 	const auto OldFaction = RecentFaction;
 	RecentFaction = Faction;
+	UE_LOG(LogTemp, Log, TEXT("%s %s 진영"), *GetName(),
+		RecentFaction == EFaction::Survivor ? TEXT("생존자") :
+		RecentFaction == EFaction::Raider ? TEXT("약탈자") :
+		TEXT("좀비"));
 	OnFactionchanged(Faction, OldFaction);
 }
 

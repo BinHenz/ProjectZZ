@@ -5,6 +5,10 @@
 #include "GameFramework/GameState.h"
 #include "ZZBaseGameState.generated.h"
 
+class UIntroWidget;
+class ULoadingWidget;
+class UGameStateSequentialWidget;
+
 DECLARE_EVENT_OneParam(AZZBaseGameState, OnChangePlayerNumberSignature, const uint8&)
 
 DECLARE_EVENT_ThreeParams(AZZBaseGameState, FOnPlayerKillNotifiedSignature, APlayerState*, APlayerState*, AActor*)
@@ -23,6 +27,8 @@ protected:
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	virtual void HandleMatchHasStarted() override;
 	virtual void HandleMatchHasEnded() override;
+	virtual void HandleMatchIsIntro();
+	virtual void OnRep_MatchState() override;
 
 public:
 	// 플레이가능한 최대 인원 수를 가져옵니다.
@@ -59,6 +65,8 @@ private:
 	void SetupTimerWidget(FTimerHandle& TimerHandle, const float& Duration, float& EndingTime,
 	                      const FTimerDelegate& Callback, TWeakObjectPtr<class UGameTimeWidget> TimeWidget);
 
+	UGameStateSequentialWidget* GetOrCreateSequentialWidget();
+	
 public:
 	virtual bool HasMatchStarted() const override;
 
@@ -83,6 +91,10 @@ protected:
 	// 플레이가능한 최대 인원 수를 정의합니다.
 	UPROPERTY(EditDefaultsOnly)
 	uint8 MaximumPlayers;
+
+	// 인트로 시간을 정의합니다.
+	UPROPERTY(EditDefaultsOnly)
+	float IntroDuration;
 	
 	// 매치가 몇초간 지속될 지를 정의합니다.
 	UPROPERTY(ReplicatedUsing=OnRep_MatchEndingTime)
@@ -101,7 +113,13 @@ protected:
 #pragma region Widget
 
 	// 게임 시작 대기중에 표시되는 위젯입니다.
-	// TWeakObjectPtr<ULoadingWidget> LoadingWidget;
+	TWeakObjectPtr<ULoadingWidget> LoadingWidget;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameStateSequentialWidget> SequentialWidgetClass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UGameStateSequentialWidget> SequentialWidget;
 	
 	// 게임중에 표시되는 타이머 위젯 클래스를 지정합니다.
 	UPROPERTY(EditAnywhere)
@@ -110,8 +128,11 @@ protected:
 	// 게임중에 표시되는 타이머 위젯입니다.
 	TWeakObjectPtr<UGameTimeWidget> InGameTimeWidget;
 	
-	//인게임 일반 UI를 담는 위젯입니다.
+	// 인게임 일반 UI를 담는 위젯입니다.
 	TObjectPtr<class UCommonActivatableWidget> InGameWidgetStack;
+
+	// 인트로 위젯입니다.
+	TWeakObjectPtr<UIntroWidget> IntroWidget;
 
 #pragma endregion
 	

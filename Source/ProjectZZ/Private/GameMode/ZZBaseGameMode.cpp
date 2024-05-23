@@ -13,7 +13,7 @@
 
 namespace MatchState
 {
-	const FName IsSelectCharacter = FName(TEXT("IsSelectCharacter"));
+	// const FName IsSelectCharacter = FName(TEXT("IsSelectCharacter"));
 	const FName IsIntro = FName(TEXT("IsIntro"));
 }
 
@@ -168,6 +168,20 @@ void AZZBaseGameMode::Logout(AController* Exiting)
 	UE_LOG(LogTemp, Warning, TEXT("Current Player Num : %d"), NumPlayers);
 }
 
+void AZZBaseGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	UE_LOG(LogTemp, Warning, TEXT("OnMatchStateSet()"));
+	UE_LOG(LogTemp, Warning, TEXT("OnMatchState Is : %s"), *MatchState.ToString());
+
+	if (MatchState == MatchState::IsIntro)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MatchState == MatchState::IsIntro"));
+		HandleMatchIsIntro();
+	}
+}
+
 void AZZBaseGameMode::OnPlayerKilled(AController* VictimController, AController* InstigatorController, AActor* DamageCauser)
 {
 	if (const auto InstigatorPlayerState = InstigatorController->GetPlayerState<AZZBasePlayerState>())
@@ -209,10 +223,19 @@ void AZZBaseGameMode::DelayedEndedGame()
 
 bool AZZBaseGameMode::HasMatchStarted() const
 {
-	if (MatchState == MatchState::IsSelectCharacter || MatchState == MatchState::IsIntro)
+	UE_LOG(LogTemp, Warning, TEXT("HasMatchStarted()"));
+
+	if (MatchState == MatchState::IsIntro)
 		return false;
 	
 	return Super::HasMatchStarted();
+}
+
+void AZZBaseGameMode::StartIntro()
+{
+	if (MatchState != MatchState::WaitingToStart) return;
+
+	SetMatchState(MatchState::IsIntro);
 }
 
 UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
@@ -286,11 +309,11 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 		UE_LOG(LogTemp, Warning, TEXT("ZZBaseGameMode_BaseGameState is null."));
 	}
 
-	// CurrentPlayerNum = BaseGameState->PlayerArray.Num();
+	CurrentPlayerNum = BaseGameState->PlayerArray.Num();
 	
-	// if (CurrentPlayerNum >= BaseGameState->GetMaximumPlayers())
-	// {
-	// 	GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::HandleMatchHasStarted,
-	// 		CharacterSelectStartDelay, false);
-	// }
+	if (CurrentPlayerNum >= BaseGameState->GetMaximumPlayers())
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_DelayedCharacterSelectStart, this, &AZZBaseGameMode::StartIntro,
+			MatchStartIntroDelay, false);
+	}
 }

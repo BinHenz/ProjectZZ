@@ -7,7 +7,7 @@
 
 namespace MatchState
 {
-	extern const FName IsSelectCharacter; //캐릭터를 선택할때의 상태입니다, WaitingToStart 다음 상태이며, 이 상태가 끝나면 InProgress로 넘어갑니다
+	// extern const FName IsSelectCharacter; //캐릭터를 선택할때의 상태입니다, WaitingToStart 다음 상태이며, 이 상태가 끝나면 InProgress로 넘어갑니다
 	extern const FName IsIntro;//캐릭터 선택 이후 게임 시작 전 인트로 상태입니다. 인트로 위젯이 출력됩니다.
 }
 
@@ -41,6 +41,10 @@ protected:
 
 	// 플레이어가 로그아웃 할 경우 호출
 	virtual void Logout(AController* Exiting) override;
+
+	// SetMatchState()가 호출되서 MatchState가 변경된 직후 호출됨
+	// HandleMatchIsWaitingToStart() 같은 MatchState에 맞는 HandleMatch~~ 함수를 호출함
+	virtual void OnMatchStateSet() override;
 
 	// EnteringMap (맵 진입)
 	// 액터 틱은 아직 이루어지지 않으며, 월드는 제대로 초기화 되지 않은 상태.
@@ -78,6 +82,7 @@ protected:
 public:
 	virtual void OnPlayerKilled(AController* VictimController, AController* InstigatorController, AActor* DamageCauser);
 	virtual bool HasMatchStarted() const override;
+	virtual void StartIntro();
 
 protected:
 	virtual void RespawnPlayer(AController* KilledController);
@@ -96,9 +101,12 @@ protected:
 	// float CharacterSelectStartDelay;
 	
 	FTimerHandle TimerHandle_DelayedEnded;
+	float MatchStartDelay;
 	float MatchEndDelay = 10.0f;
 
-	float MatchStartDelay;
+	UPROPERTY(EditDefaultsOnly)
+	float MatchStartIntroDelay;
+	
 protected:
 	uint8 CurrentPlayerNum;
 	TObjectPtr<AZZBaseGameState> BaseGameState;

@@ -4,7 +4,6 @@
 #include "GameMode/ZZPlayGameMode.h"
 
 #include "AI/ZZZombieAIController.h"
-#include "Controller/ZZPlayerMovableController.h"
 
 AZZPlayGameMode::AZZPlayGameMode()
 {
@@ -42,7 +41,7 @@ void AZZPlayGameMode::BeginPlay()
 		}
 	}
 	
-	StartMatch();
+	// StartMatch();
 }
 
 void AZZPlayGameMode::HandleMatchHasStarted()

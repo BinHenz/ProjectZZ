@@ -85,14 +85,14 @@ void AZZPlayGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	
-	// 플레이어 컨트롤러의 경우 Survivor로 설정
+	// TODO : 플레이어 컨트롤러의 경우 Survivor로 설정
 	if(NewPlayer && NewPlayer->IsPlayerController())
 		NewPlayer->GetPlayerState<AZZBasePlayerState>()->SetFaction(EFaction::Survivor);
 
 	if (AiControllerArray.Num() > 0) return;
 
 	// TODO : 첫번째 플레이어가 접속하면 그때 AI를 생성합니다, 플레이어가 한명일 때만을 가정합니다.
-	// 추후 서버를 구현하면 모든 플레이어가 접속하면 AI를 생성하도록 수정할 예정입니다.
+	// TODO : 추후 서버를 구현하면 모든 플레이어가 접속하면 AI를 생성하도록 수정할 예정입니다.
 	for (int i = 0; i < NumberOfAi; ++i) 
 	{
 		AZZZombieAIController* AiController;

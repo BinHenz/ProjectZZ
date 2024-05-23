@@ -9,7 +9,6 @@
 #include "GameMode/ZZBaseGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
-#include "Character/ZZPlayerCharacter.h"
 #include "GameFramework/GameSession.h"
 
 namespace MatchState
@@ -25,10 +24,8 @@ const FString AZZBaseGameMode::ZombieFactionSpawnTag = FString(TEXT("ZombieFacti
 AZZBaseGameMode::AZZBaseGameMode()
 {
 	bDelayedStart = true;
-	MinRespawnDelay = 4.0f;
+	MinRespawnDelay = 5.0f;
 	MatchStartDelay = 3.0f;
-	
-	// CharacterClasses.Add(TEXT("Player"), AZZPlayerCharacter::StaticClass());
 }
 
 void AZZBaseGameMode::RestartPlayer(AController* NewPlayer)
@@ -77,29 +74,6 @@ void AZZBaseGameMode::InitStartSpot_Implementation(AActor* StartSpot, AControlle
 
 AActor* AZZBaseGameMode::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
 {
-	// if (const auto PlayerState = Player->GetPlayerState<AZZBasePlayerState>())
-	// {
-	// 	const auto Faction = PlayerState->GetFaction();
-	// 	FString SpawnTag;
-	// 	switch (Faction)
-	// 	{
-	// 	case EFaction::Survivor:
-	// 		SpawnTag = SurvivorFactionSpawnTag;
-	// 		break;
-	// 	case EFaction::Raider:
-	// 		SpawnTag = RaiderFactionSpawnTag;
-	// 		break;
-	// 	case EFaction::Zombie:
-	// 		SpawnTag = ZombieFactionSpawnTag;
-	// 		break;
-	// 	default:
-	// 		SpawnTag = TEXT("InitSpawnZone");
-	// 		break;
-	// 	}
-	//
-	// 	return Super::FindPlayerStart_Implementation(Player, SpawnTag);
-	// }
-
 	return Super::FindPlayerStart_Implementation(Player, IncomingName);
 }
 
@@ -141,7 +115,6 @@ void AZZBaseGameMode::HandleMatchIsIntro()
 
 void AZZBaseGameMode::HandleMatchHasStarted()
 {
-	// 게임 시작 후, 서버 측 클라에게 UI바인딩.
 	Super::HandleMatchHasStarted();
 	
 	UE_LOG(LogTemp, Error, TEXT("HandleMatchHasStarted"));
@@ -157,7 +130,6 @@ void AZZBaseGameMode::HandleMatchHasEnded()
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindWeakLambda(this,[&]
 	{
-
 		if(GameSession)
 		{
 			for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
@@ -180,7 +152,7 @@ void AZZBaseGameMode::HandleMatchHasEnded()
 	GetWorldTimerManager().SetTimer(RestartServerTimerHandle, TimerDelegate, 15.0f, false);
 }
 
-//TODO: 사용되지 않는 오버라이딩 제거
+// TODO : 사용되지 않는 오버라이딩 제거
 void AZZBaseGameMode::HandleLeavingMap()
 {
 	Super::HandleLeavingMap();
@@ -188,7 +160,7 @@ void AZZBaseGameMode::HandleLeavingMap()
 	UE_LOG(LogTemp, Error, TEXT("HandleLeavingMap"));
 }
 
-//TODO: 사용되지 않는 오버라이딩 제거
+// TODO : 사용되지 않는 오버라이딩 제거
 void AZZBaseGameMode::Logout(AController* Exiting)
 {
 	Super::Logout(Exiting);
@@ -203,37 +175,42 @@ void AZZBaseGameMode::OnPlayerKilled(AController* VictimController, AController*
 		InstigatorPlayerState->IncreaseKillCount();
 	}
 
-	const auto VictimPlayerState = VictimController->GetPlayerState<AZZBasePlayerState>();
-	if (VictimPlayerState != nullptr) VictimPlayerState->IncreaseDeathCount();
+	// const auto VictimPlayerState = VictimController->GetPlayerState<AZZBasePlayerState>();
+	// if (VictimPlayerState != nullptr) VictimPlayerState->IncreaseDeathCount();
+	
+	if (const auto VictimPlayerState = VictimController->GetPlayerState<AZZBasePlayerState>())
+	{
+		VictimPlayerState->IncreaseDeathCount();
+		
+		// TODO : ShouldRespawn 함수는 사망한 캐릭터가 부활할 수 있는지 여부를 검사하기 위해 기획되었습니다.
+		// TODO : 따라서 매개변수로 플레이어 스테이트나 컨트롤러를 받아야 합니다.
+		if (ShouldRespawn())
+		{
+			static FRespawnTimerDelegate Delegate;
+			Delegate.BindUObject(this, &AZZBaseGameMode::RespawnPlayer);
+			VictimPlayerState->SetRespawnTimer(GetGameState<AGameState>()->GetServerWorldTimeSeconds() + MinRespawnDelay,
+											   Delegate);
+		}
+		else
+		{
+			VictimPlayerState->SetRespawnTimer(-1.0f);
+		}
+	}
 
 	if (const auto ZZAutoBaseGameState = GetGameState<AZZBaseGameState>())
-		ZZAutoBaseGameState->NotifyPlayerKilled(VictimController->GetPlayerState<APlayerState>(), InstigatorController->GetPlayerState<APlayerState>(), DamageCauser);
-
-	//TODO: ShouldRespawn 함수는 사망한 플레이어가 부활할 수 있는지 여부를 검사하기 위해 기획되었습니다. 따라서 매개변수로 플레이어 스테이트나 컨트롤러를 받아야 합니다.
-	if (ShouldRespawn())
-	{
-		static FRespawnTimerDelegate Delegate;
-		Delegate.BindUObject(this, &AZZBaseGameMode::RespawnPlayer);
-		VictimPlayerState->SetRespawnTimer(GetGameState<AGameState>()->GetServerWorldTimeSeconds() + MinRespawnDelay,
-		                                   Delegate);
-	}
-	else
-	{
-		VictimPlayerState->SetRespawnTimer(-1.0f);
-	}
+		ZZAutoBaseGameState->NotifyPlayerKilled(VictimController->GetPlayerState<APlayerState>(),
+			InstigatorController->GetPlayerState<APlayerState>(), DamageCauser);
 }
 
 void AZZBaseGameMode::DelayedEndedGame()
 {
-	//TODO: UGameplayStatics::OpenLevelBySoftObjectPtr()를 사용하면 하드코딩을 줄일 수 있습니다.
 	UGameplayStatics::OpenLevel(GetWorld(), "MainLobbyLevel");
 }
 
 bool AZZBaseGameMode::HasMatchStarted() const
 {
-	//TODO: 취향차이지만 아래의 주석과 같이 간단히 표현할 수도 있습니다.
-	// return MatchState == MatchState::IsSelectCharacter ? false : Super::HasMatchStarted();
-	if (MatchState == MatchState::IsSelectCharacter || MatchState == MatchState::IsIntro) return false;
+	if (MatchState == MatchState::IsSelectCharacter || MatchState == MatchState::IsIntro)
+		return false;
 	
 	return Super::HasMatchStarted();
 }
@@ -244,15 +221,21 @@ UClass* AZZBaseGameMode::GetDefaultPawnClassForController_Implementation(AContro
 		if (CharacterClasses.Contains(PlayerState->GetCharacterName()))
 			return CharacterClasses[PlayerState->GetCharacterName()];
 	
-	// 기본 캐릭터 클래스 반환
+	// TODO : 기본 캐릭터 클래스 반환
 	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
 
 
 void AZZBaseGameMode::RespawnPlayer(AController* KilledController)
 {
+	// TODO : 기존 Pawn을 Unpossess 하고 제거합니다.
+	if (APawn* OldPawn = KilledController->GetPawn())
+	{
+		KilledController->UnPossess();
+		OldPawn->Destroy();
+	}
+
 	RestartPlayer(KilledController);
-	UE_LOG(LogTemp, Warning, TEXT("RespawnPlayer"));
 
 	if (RespawnEffect)
 	{
@@ -262,6 +245,8 @@ void AZZBaseGameMode::RespawnPlayer(AController* KilledController)
 			ASC->BP_ApplyGameplayEffectToSelf(RespawnEffect, 1.0f, {});
 		}
 	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("RespawnPlayer"));
 }
 
 bool AZZBaseGameMode::ShouldRespawn()
@@ -273,12 +258,10 @@ void AZZBaseGameMode::RegisterPlayer(AController* NewPlayer)
 {
 	if (const auto BasePlayerState = NewPlayer->GetPlayerState<AZZBasePlayerState>())
 	{
-		//TODO: NewPlayer를 캡쳐할 필요 없이 ArgBasePlayerState를 사용하면 됩니다.
 		BasePlayerState->OnCharacterNameChanged.AddLambda
 		(
 			[this, NewPlayer](AZZBasePlayerState* ArgBasePlayerState, const FName& ArgCharacterName)
 			{
-				//TODO: 매치스테이트는 게임모드에도 있습니다. IsMatchInProgress()를 사용하면 됩니다.
 				if (IsMatchInProgress())
 				{
 					if (NewPlayer->GetPlayerState<AZZBasePlayerState>()->IsAlive())

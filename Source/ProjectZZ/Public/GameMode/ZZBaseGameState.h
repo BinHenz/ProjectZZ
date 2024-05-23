@@ -23,7 +23,6 @@ protected:
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	virtual void HandleMatchHasStarted() override;
 	virtual void HandleMatchHasEnded() override;
-	// virtual void OnRep_MatchState() override;
 
 public:
 	// 플레이가능한 최대 인원 수를 가져옵니다.

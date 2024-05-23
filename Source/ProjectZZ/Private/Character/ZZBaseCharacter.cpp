@@ -18,7 +18,14 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AZZBaseCharacter::AZZBaseCharacter()
 {
+	MaxHealth = 100.f;
+	PrimaryActorTick.bCanEverTick = true;
+	FactionObjectTypeMap.Emplace(EFaction::Survivor, ECC_Pawn);
+	FactionObjectTypeMap.Emplace(EFaction::Raider, ECC_Pawn);
+	FactionObjectTypeMap.Emplace(EFaction::Zombie, ECC_Pawn);
+	bIsAlive = true;
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	CharacterName = TEXT("Base");
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -54,13 +61,6 @@ AZZBaseCharacter::AZZBaseCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-	
-	MaxHealth = 100.f;
-	PrimaryActorTick.bCanEverTick = true;
-	FactionObjectTypeMap.Emplace(EFaction::Survivor, ECC_Pawn);
-	FactionObjectTypeMap.Emplace(EFaction::Raider, ECC_Pawn);
-	FactionObjectTypeMap.Emplace(EFaction::Zombie, ECC_Pawn);
-	bIsAlive = true;
 }
 
 void AZZBaseCharacter::BeginPlay()
@@ -68,7 +68,9 @@ void AZZBaseCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
+	MeshCollisionProfile = GetMesh()->GetCollisionProfileName();
+	
+	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -77,7 +79,7 @@ void AZZBaseCharacter::BeginPlay()
 		}
 	}
 
-	// 어빌리티 시스템 컴포넌트 초기화
+	// TODO : 어빌리티 시스템 컴포넌트 초기화
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
@@ -113,7 +115,7 @@ void AZZBaseCharacter::SetFaction(const EFaction& Faction)
 
 UAbilitySystemComponent* AZZBaseCharacter::GetAbilitySystemComponent() const
 {
-	// 어빌리티 핸들 컨테이너에 캐싱된 어빌리티 시스템이 유효한 경우 해당 어빌리티 시스템을 반환합니다.
+	// TODO : 어빌리티 핸들 컨테이너에 캐싱된 어빌리티 시스템이 유효한 경우 해당 어빌리티 시스템을 반환합니다.
 	if (AbilityHandleContainer.AbilitySystem.IsValid())
 	{
 		return AbilityHandleContainer.AbilitySystem.Get();
@@ -126,10 +128,10 @@ float AZZBaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 {
 	const auto LocalState = GetPlayerState();
 
-	// 플레이어 스테이트가 없는 경우 원본의 로직을 실행합니다.
+	// TODO : 플레이어 스테이트가 없는 경우 원본의 로직을 실행합니다.
 	if (!LocalState) return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	// 플레이어 스테이트에서 데미지를 처리하고나서, 애니메이션 재생을 위해 캐릭터에서도 데미지를 처리합니다.
+	// TODO : 플레이어 스테이트에서 데미지를 처리하고나서, 애니메이션 재생을 위해 캐릭터에서도 데미지를 처리합니다.
 	const auto Damage = LocalState->TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	return Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
@@ -152,10 +154,12 @@ void AZZBaseCharacter::ClearAbilities()
 void AZZBaseCharacter::SetAliveState_Implementation(bool IsAlive)
 {
 	bIsAlive = IsAlive;
+	UE_LOG(LogTemp, Log, TEXT("IsAlive : %hhd"), bIsAlive);
 
 	if (IsAlive)
 	{
 		GetMesh()->SetAllBodiesSimulatePhysics(false);
+		GetMesh()->SetCollisionProfileName(MeshCollisionProfile);
 		GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}

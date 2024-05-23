@@ -4,7 +4,7 @@
 #include "Character/ZZBasePlayerState.h"
 
 #include "AbilitySystemComponent.h"
-#include "..\..\Public\Character\ZZBaseCharacter.h"
+#include "Character\ZZBaseCharacter.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "UI/HealthWidget.h"
@@ -67,8 +67,16 @@ float AZZBasePlayerState::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	OnHealthChanged.Broadcast(Health);
 	UE_LOG(LogTemp, Warning, TEXT("Health %f"), Health);
 
-	if (IsDead) OnPlayerKilled.Broadcast(GetOwningController(), EventInstigator, DamageCauser);
+	if (IsDead)
+	{
+		OnPlayerKilled.Broadcast(GetOwningController(), EventInstigator, DamageCauser);
 
+		if (AZZBaseCharacter* Character = GetPawn<AZZBaseCharacter>())
+		{
+			// SetAliveState 함수를 호출합니다.
+			Character->SetAliveState(false);
+		}
+	}
 	return Damage;
 }
 
@@ -260,13 +268,13 @@ void AZZBasePlayerState::BroadcastMaxHealthChanged() const
 bool AZZBasePlayerState::ShouldTakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
                                               AController* EventInstigator, AActor* DamageCauser)
 {
-	// 플레이어가 이미 사망한 상태인 경우 데미지를 받지 않습니다.
+	// TODO : 플레이어가 이미 사망한 상태인 경우 데미지를 받지 않습니다.
 	if (!IsAlive() || !HasAuthority()) return false;
 
-	// EventInstigator가 nullptr인 경우 글로벌 데미지이거나 어떤 정의할 수 없는 데미지이지만 일단 받아야하는 데미지라고 판단합니다.
+	// TODO : EventInstigator가 nullptr인 경우 글로벌 데미지이거나 어떤 정의할 수 없는 데미지이지만 일단 받아야하는 데미지라고 판단합니다.
 	if (!EventInstigator) return true;
 
-	// 데미지가 피해인 경우 다른 진영일때만 받고, 데미지가 힐인 경우 같은 진영일때만 받습니다.
+	// TODO : 데미지가 피해인 경우 다른 진영일때만 받고, 데미지가 힐인 경우 같은 진영일때만 받습니다.
 	const auto Other = EventInstigator->GetPlayerState<AZZBasePlayerState>();
 	return (DamageAmount > 0.f && !IsSameFaction(Other)) || (DamageAmount < 0.f && IsSameFaction(Other));
 }
@@ -386,7 +394,7 @@ void AZZBasePlayerState::OnRep_RespawnTime()
 	UpdateAliveStateWithRespawnTime(CurrentTime);
 	OnRespawnTimeChanged.Broadcast(RespawnTime);
 
-	// 부활시간에 OnAliveStateChanged 이벤트가 호출될 수 있도록 타이머를 설정합니다.
+	// TODO : 부활시간에 OnAliveStateChanged 이벤트가 호출될 수 있도록 타이머를 설정합니다.
 	if (const auto World = GetWorld())
 	{
 		static FTimerDelegate Delegate;
@@ -418,17 +426,28 @@ void AZZBasePlayerState::UpdateAliveStateWithRespawnTime(const float& CurrentTim
 void AZZBasePlayerState::SetAliveState(bool AliveState)
 {
 	if (bRecentAliveState == AliveState) return;
+	UE_LOG(LogTemp, Log, TEXT("AliveState : %hhd"), AliveState);
 	bRecentAliveState = AliveState;
 
 	if (AbilitySystem) AbilitySystem->SetLooseGameplayTagCount(DeathTag, bRecentAliveState ? 0 : 1);
 
+	if(const auto Character = GetPawn<AZZBaseCharacter>())
+		Character->SetAliveState(AliveState);
+	
 	// if (CharacterWidget) CharacterWidget->SetAliveState(bRecentAliveState);
 	OnAliveStateChanged.Broadcast(AliveState);
 }
 
 void AZZBasePlayerState::RespawnTimerCallback(FRespawnTimerDelegate Callback)
 {
+	// TODO : SetAliveState 함수를 호출하여 캐릭터의 생존 상태를 갱신합니다.
+	bRecentAliveState = true;
 	SetAliveState(true);
+	if (AZZBaseCharacter* Character = GetPawn<AZZBaseCharacter>())
+	{
+		Character->SetAliveState(true);
+	}
+	
 	Callback.Execute(GetOwningController());
 }
 
@@ -492,11 +511,10 @@ void AZZBasePlayerState::OnGameplayEffectAppliedDelegateToTargetCallback(
 
 	for (const auto& ModifiedAttribute : SpecApplied.ModifiedAttributes)
 	{
-		//이펙트로 적의 체력을 깎았을 때데미지를 줬을 때)
+		// TODO : 이펙트로 적의 체력을 깎았을 때 데미지를 줬을 때
 		if (ModifiedAttribute.Attribute == HealthAttribute && ModifiedAttribute.TotalMagnitude < 0.0f)
 		{
-			// ModifiedAttribute.TotalMagnitude 변경된 어트리뷰트의 총량 데미지 200을 받았다면 -200
-
+			// TODO : ModifiedAttribute.TotalMagnitude 변경된 어트리뷰트의 총량 데미지 100을 받았다면 -100
 			const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
 				GainUltimateOnAttackEffect, 0, AbilitySystem->MakeEffectContext());
 

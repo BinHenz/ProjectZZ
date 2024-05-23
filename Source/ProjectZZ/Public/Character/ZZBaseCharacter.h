@@ -101,6 +101,7 @@ private:
 	
 	FZZAbilityHandleContainer AbilityHandleContainer;
 	EFaction RecentFaction;
+	FName MeshCollisionProfile;
 
 protected:
 	// // APawn interface

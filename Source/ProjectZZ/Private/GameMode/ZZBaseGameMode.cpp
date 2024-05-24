@@ -3,7 +3,7 @@
 #include "GameMode/ZZBaseGameMode.h"
 
 #include "AbilitySystemGlobals.h"
-#include "Faction.h"
+#include "Faction/Faction.h"
 #include "Character/ZZBaseCharacter.h"
 #include "Character/ZZBasePlayerState.h"
 #include "GameMode/ZZBaseGameState.h"

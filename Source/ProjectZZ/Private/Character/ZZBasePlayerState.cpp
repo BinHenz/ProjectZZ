@@ -294,6 +294,15 @@ void AZZBasePlayerState::InitializeStatus()
 		SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")),
 		                                               Character->GetCharacterMaxSkillStack());
 		
+		// const FZZAttributeData* AttributeData = AttributeDataAsset->CharacterAttributeDataTable->FindRow<FZZAttributeData>(FName("DefaultCharacter"), TEXT(""));
+		// if (AttributeData)
+		// {
+		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")), AttributeData->MaxHealth);
+		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")), AttributeData->MaxAmmo);
+		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")), AttributeData->AttackPoint);
+		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")), AttributeData->MaxSkillStack);
+		// }
+		
 		AbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
 		if(StatRegenEffect)

@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "Faction.h"
-#include "FactionObjectInterface.h"
+#include "Faction/Faction.h"
+#include "Faction/FactionObjectInterface.h"
 #include "Ability/Attribute/ZZAttributeSet.h"
+#include "Ability/Attribute/ZZAttributeDataAsset.h"
 #include "GameFramework/PlayerState.h"
 #include "ZZBasePlayerState.generated.h"
 
@@ -242,6 +243,9 @@ public:
 	FOnRespawnTimeChangeSignature OnRespawnTimeChanged;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UZZAttributeDataAsset* AttributeDataAsset;
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UHealthWidget> HealthWidgetClass;
 	

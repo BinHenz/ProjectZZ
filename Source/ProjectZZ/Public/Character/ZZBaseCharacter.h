@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "AbilitySystemInterface.h"
-#include "Faction.h"
+#include "Faction/Faction.h"
 #include "Ability/ZZAbilitySet.h"
 #include "Ability/RegisterAbilityInterface.h"
 #include "Abilities/GameplayAbility.h"

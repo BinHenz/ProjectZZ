@@ -8,6 +8,7 @@
 #include "Ability/Attribute/ZZAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "UI/HealthWidget.h"
+#include "Engine/DataTable.h"
 #include "GameFramework/GameStateBase.h"
 #include "Net/UnrealNetwork.h"
 
@@ -285,23 +286,85 @@ void AZZBasePlayerState::InitializeStatus()
 	{
 		const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
 			StatusInitializeEffect, 0, AbilitySystem->MakeEffectContext());
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")),
-		                                               Character->GetCharacterMaxHealth());
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")),
-		                                               Character->GetCharacterMaxAmmo());
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")),
-		                                               Character->GetCharacterAttackPoint());
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")),
-		                                               Character->GetCharacterMaxSkillStack());
+		// SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")),
+		//                                                Character->GetCharacterMaxHealth());
+		// SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")),
+		//                                                Character->GetCharacterMaxAmmo());
+		// SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")),
+		//                                                Character->GetCharacterAttackPoint());
+		// SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")),
+		//                                                Character->GetCharacterMaxSkillStack());
 		
-		// const FZZAttributeData* AttributeData = AttributeDataAsset->CharacterAttributeDataTable->FindRow<FZZAttributeData>(FName("DefaultCharacter"), TEXT(""));
-		// if (AttributeData)
-		// {
-		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")), AttributeData->MaxHealth);
-		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")), AttributeData->MaxAmmo);
-		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")), AttributeData->AttackPoint);
-		// 	SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")), AttributeData->MaxSkillStack);
-		// }
+
+		// 데이터 테이블의 모든 행 데이터를 가져오기
+		TArray<FAttributeMetaData*> AttributeDataArray;
+		AttributeDataAsset->CharacterAttributeDataTable->GetAllRows<FAttributeMetaData>(TEXT(""), AttributeDataArray);
+
+		// 모든 행 데이터를 순회하며 처리
+		for (const FAttributeMetaData* AttributeData : AttributeDataArray)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("데이터 값 : %f"), AttributeData->MaxValue);
+
+			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+			// 행 데이터 처리
+			FString DerivedAttributeInfoString = AttributeData->DerivedAttributeInfo;
+			TArray<FString> RowNames;
+			DerivedAttributeInfoString.ParseIntoArray(RowNames, TEXT(","), true);
+
+			for (const FString& RowName : RowNames)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("데이터 이름 : %s"), *DerivedAttributeInfoString);
+
+				// 행 이름과 태그 이름이 일치하는 경우 값 설정
+				FGameplayTag StatTag = FGameplayTag::RequestGameplayTag(*RowName);
+				if (StatTag.MatchesTag(FGameplayTag::RequestGameplayTag(*RowName)))
+				{
+					Spec->SetSetByCallerMagnitude(StatTag, AttributeData->MaxValue);
+				}
+			}
+		}
+
+		// 데이터가 없는 경우 처리
+		if (AttributeDataArray.Num() == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData is nullptr."));
+		}
+		
+		/*
+		// 데이터 테이블의 모든 행 데이터를 가져오기
+		TArray<FZZAttributeMetaData*> ZZAttributeDataArray;
+		AttributeDataAsset->CharacterAttributeDataTable->GetAllRows<FZZAttributeMetaData>(TEXT(""), ZZAttributeDataArray);
+		// 모든 행 데이터를 순회하며 처리
+		for (const FZZAttributeMetaData* AttributeData : ZZAttributeDataArray)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData."));
+		
+			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+		
+			// MaxHealth 속성 설정
+			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")), AttributeData->MaxHealth);
+			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
+		
+			// MaxAmmo 속성 설정
+			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")), AttributeData->MaxAmmo);
+			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
+		
+			// AttackPoint 속성 설정
+			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")), AttributeData->AttackPoint);
+			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
+		
+			// MaxSkillStack 속성 설정
+			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")), AttributeData->MaxSkillStack);
+			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
+		}
+		// 데이터가 없는 경우 처리
+		if (ZZAttributeDataArray.Num() == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData is nullptr."));
+		}
+*/
+		
 		
 		AbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 

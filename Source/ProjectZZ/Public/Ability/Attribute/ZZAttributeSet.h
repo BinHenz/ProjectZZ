@@ -32,6 +32,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, Health);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, MaxAmmo);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, CurrentAmmo);
+	ATTRIBUTE_ACCESSORS(UZZAttributeSet, Magazine);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, AttackPoint);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, SkillStack);
 	ATTRIBUTE_ACCESSORS(UZZAttributeSet, MaxSkillStack);
@@ -62,6 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentAmmo)
 	FGameplayAttributeData CurrentAmmo;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_Magazine)
+	FGameplayAttributeData Magazine;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, ReplicatedUsing= OnRep_AttackPoint)
 	FGameplayAttributeData AttackPoint;
 
@@ -89,6 +93,8 @@ protected:
 	virtual void OnRep_MaxAmmo(const FGameplayAttributeData& OldValue);
 	UFUNCTION()
 	virtual void OnRep_CurrentAmmo(const FGameplayAttributeData& OldValue);
+	UFUNCTION()
+	virtual void OnRep_Magazine(const FGameplayAttributeData& OldValue);
 	UFUNCTION()
 	virtual void OnRep_AttackPoint(const FGameplayAttributeData& OldValue);
 	UFUNCTION()

@@ -72,6 +72,7 @@ void UZZAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, f
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(Health)
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(SkillStack)
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(CurrentAmmo)
+	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(Magazine)
 
 	// if (Attribute == GetHealthAttribute())
 	// {
@@ -95,6 +96,8 @@ void UZZAttributeSet::PostAttributeBaseChange(const FGameplayAttribute& Attribut
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(Health)
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(SkillStack)
 	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(CurrentAmmo)
+	MARK_ATTRIBUTE_DIRTY_IF_CHANGED(Magazine)
+
 }
 
 void UZZAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
@@ -115,6 +118,11 @@ void UZZAttributeSet::OnRep_MaxAmmo(const FGameplayAttributeData& OldValue)
 void UZZAttributeSet::OnRep_CurrentAmmo(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UZZAttributeSet, CurrentAmmo, OldValue);
+}
+
+void UZZAttributeSet::OnRep_Magazine(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UZZAttributeSet, Magazine, OldValue);
 }
 
 void UZZAttributeSet::OnRep_AttackPoint(const FGameplayAttributeData& OldValue)
@@ -150,7 +158,7 @@ void UZZAttributeSet::OnRep_Agility(const FGameplayAttributeData& OldValue)
 }
 
 UZZAttributeSet::UZZAttributeSet() : MaxHealth(100.0f), Health(100.0f), MaxAmmo(-1.0f), CurrentAmmo(-1.0f),
-                                             AttackPoint(40.0f), SkillStack(3.0f), MaxSkillStack(3.0f),
+                                             Magazine(120.0f), AttackPoint(40.0f), SkillStack(3.0f), MaxSkillStack(3.0f),
                                              EnergyHaste(0.0f), Agility(0.0f), Preparation(0.0f)
 {
 	bOutOfHealth = false;
@@ -174,6 +182,7 @@ void UZZAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME_WITH_PARAMS(UZZAttributeSet, CurrentAmmo, Params);
 
 	Params.bIsPushBased = false;
+	DOREPLIFETIME_WITH_PARAMS(UZZAttributeSet, Magazine, Params);
 	DOREPLIFETIME_WITH_PARAMS(UZZAttributeSet, MaxHealth, Params);
 	DOREPLIFETIME_WITH_PARAMS(UZZAttributeSet, MaxAmmo, Params);
 	DOREPLIFETIME_WITH_PARAMS(UZZAttributeSet, AttackPoint, Params);

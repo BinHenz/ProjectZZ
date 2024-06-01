@@ -331,41 +331,6 @@ void AZZBasePlayerState::InitializeStatus()
 			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData is nullptr."));
 		}
 		
-		/*
-		// 데이터 테이블의 모든 행 데이터를 가져오기
-		TArray<FZZAttributeMetaData*> ZZAttributeDataArray;
-		AttributeDataAsset->CharacterAttributeDataTable->GetAllRows<FZZAttributeMetaData>(TEXT(""), ZZAttributeDataArray);
-		// 모든 행 데이터를 순회하며 처리
-		for (const FZZAttributeMetaData* AttributeData : ZZAttributeDataArray)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData."));
-		
-			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-		
-			// MaxHealth 속성 설정
-			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxHealth")), AttributeData->MaxHealth);
-			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
-		
-			// MaxAmmo 속성 설정
-			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxAmmo")), AttributeData->MaxAmmo);
-			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
-		
-			// AttackPoint 속성 설정
-			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.AttackPoint")), AttributeData->AttackPoint);
-			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
-		
-			// MaxSkillStack 속성 설정
-			Spec->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")), AttributeData->MaxSkillStack);
-			AbilitySystem->ApplyGameplayEffectSpecToSelf(*Spec);
-		}
-		// 데이터가 없는 경우 처리
-		if (ZZAttributeDataArray.Num() == 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData* AttributeData is nullptr."));
-		}
-*/
-		
-		
 		AbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
 		if(StatRegenEffect)

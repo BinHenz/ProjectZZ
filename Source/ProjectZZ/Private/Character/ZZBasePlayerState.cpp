@@ -279,7 +279,7 @@ bool AZZBasePlayerState::ShouldTakeDamage(float DamageAmount, FDamageEvent const
 	const auto Other = EventInstigator->GetPlayerState<AZZBasePlayerState>();
 	return (DamageAmount > 0.f && !IsSameFaction(Other)) || (DamageAmount < 0.f && IsSameFaction(Other));
 }
-
+/*
 void AZZBasePlayerState::InitializeStatus()
 {
 	if (const auto Character = GetPawn<AZZBaseCharacter>())
@@ -295,6 +295,9 @@ void AZZBasePlayerState::InitializeStatus()
 		// SpecHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Stat.MaxSkillStack")),
 		//                                                Character->GetCharacterMaxSkillStack());
 		
+
+		// // 데이터 테이블의 RowNames 가져오기
+		// TArray<FName> RowNames = AttributeDataAsset->CharacterAttributeDataTable->GetRowNames();
 
 		// 데이터 테이블의 모든 행 데이터를 가져오기
 		TArray<FAttributeMetaData*> AttributeDataArray;
@@ -341,6 +344,46 @@ void AZZBasePlayerState::InitializeStatus()
 		}
 	}
 }
+*/
+void AZZBasePlayerState::InitializeStatus()
+{
+	if (const auto Character = GetPawn<AZZBaseCharacter>())
+	{
+		const FGameplayEffectSpecHandle SpecHandle = AbilitySystem->MakeOutgoingSpec(
+			StatusInitializeEffect, 0, AbilitySystem->MakeEffectContext());
+
+		// 데이터 테이블의 RowNames 가져오기
+		TArray<FName> RowNames = AttributeDataAsset->CharacterAttributeDataTable->GetRowNames();
+
+		FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+		// 모든 RowName을 순회하며 처리
+		for (const FName& RowName : RowNames)
+		{
+			FGameplayTag StatTag = FGameplayTag::RequestGameplayTag(*RowName.ToString());
+			FAttributeMetaData* AttributeData = AttributeDataAsset->CharacterAttributeDataTable->FindRow<FAttributeMetaData>(RowName, "");
+
+			if (AttributeData)
+			{
+				Spec->SetSetByCallerMagnitude(StatTag, AttributeData->MaxValue);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("FAttributeMetaData for RowName '%s' not found."), *RowName.ToString());
+			}
+		}
+
+		AbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+		if (StatRegenEffect)
+		{
+			const FGameplayEffectSpecHandle RegenEffectSpecHandle = AbilitySystem->MakeOutgoingSpec(
+				StatRegenEffect, 0, AbilitySystem->MakeEffectContext());
+			AbilitySystem->ApplyGameplayEffectSpecToSelf(*RegenEffectSpecHandle.Data.Get());
+		}
+	}
+}
+
 
 void AZZBasePlayerState::OnPawnSetCallback(APlayerState* Player, APawn* NewPawn, APawn* OldPawn)
 {

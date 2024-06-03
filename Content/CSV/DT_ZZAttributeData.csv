@@ -1,6 +1,6 @@
 ---,BaseValue,MinValue,MaxValue,DerivedAttributeInfo,bCanStack
-ZZAttributeSet.MaxHealth,150,150,150,Stat.MaxHealth,FALSE
-ZZAttributeSet.Health,100,0,100,Stat.Health,FALSE
-ZZAttributeSet.MaxAmmo,30,30,30,Stat.MaxAmmo,FALSE
-ZZAttributeSet.AttackPoint,5,5,5,Stat.AttackPoint,FALSE
-ZZAttributeSet.SkillStack,3,0,3,Stat.SkillStack,FALSE
+Stat.MaxHealth,100,100,100,Stat.MaxHealth,FALSE
+Stat.Health,100,0,100,Stat.Health,FALSE
+Stat.MaxAmmo,30,30,30,Stat.MaxAmmo,FALSE
+Stat.AttackPoint,5,5,5,Stat.AttackPoint,FALSE
+Stat.SkillStack,3,0,3,Stat.SkillStack,FALSE

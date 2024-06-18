@@ -32,20 +32,20 @@ AZZPlayerController::AZZPlayerController()
 
 	InterfaceContextPriority = 100;
 
-	// static const ConstructorHelpers::FObjectFinder<UInputMappingContext> ContextFinder(
-	// 	TEXT("InputMappingContext'/Game/Input/IC_InterfaceControl'"));
-	//
-	// static const ConstructorHelpers::FObjectFinder<UInputAction> MenuFinder(
-	// 	TEXT("InputAction'/Game/Input/IA_Menu'"));
-	//
+	static const ConstructorHelpers::FObjectFinder<UInputMappingContext> ContextFinder(
+		TEXT("InputMappingContext'/Game/Input/IC_InterfaceControl'"));
+	
+	static const ConstructorHelpers::FObjectFinder<UInputAction> MenuFinder(
+		TEXT("InputAction'/Game/Input/IA_Menu'"));
+	
 	// static const ConstructorHelpers::FObjectFinder<UInputAction> ShowScoreFinder(
 	// 	TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_ShowScore.IA_ShowScore'"));
 	//
 	// static const ConstructorHelpers::FObjectFinder<UInputAction> HideScoreFinder(
 	// 	TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_HideScore.IA_HideScore'"));
 
-	// if (ContextFinder.Succeeded()) InterfaceInputContext = ContextFinder.Object;
-	// if (MenuFinder.Succeeded()) MenuAction = MenuFinder.Object;
+	if (ContextFinder.Succeeded()) InterfaceInputContext = ContextFinder.Object;
+	if (MenuFinder.Succeeded()) MenuAction = MenuFinder.Object;
 
 	ExitLevel = FSoftObjectPath(TEXT("/Script/Engine.World'/Game/MAEOakForest/Maps/Map_Oak_Forest_A.Map_Oak_Forest_A'"));
 }

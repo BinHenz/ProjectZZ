@@ -22,6 +22,8 @@ void AZZPlayerController::UnbindAllAndBindMenu(UEnhancedInputComponent* const& E
 	EnhancedInputComponent->ClearActionBindings();
 	EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Triggered, this,
 									   &AZZPlayerController::MenuHandler);
+	EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this,
+								       &AZZPlayerController::InventoryHandler);
 
 }
 
@@ -37,6 +39,9 @@ AZZPlayerController::AZZPlayerController()
 	
 	static const ConstructorHelpers::FObjectFinder<UInputAction> MenuFinder(
 		TEXT("InputAction'/Game/Input/IA_Menu'"));
+
+	static const ConstructorHelpers::FObjectFinder<UInputAction> InventoryFinder(
+		TEXT("InputAction'/Game/Input/IA_Tap'"));
 	
 	// static const ConstructorHelpers::FObjectFinder<UInputAction> ShowScoreFinder(
 	// 	TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_ShowScore.IA_ShowScore'"));
@@ -46,6 +51,7 @@ AZZPlayerController::AZZPlayerController()
 
 	if (ContextFinder.Succeeded()) InterfaceInputContext = ContextFinder.Object;
 	if (MenuFinder.Succeeded()) MenuAction = MenuFinder.Object;
+	if (InventoryFinder.Succeeded()) InventoryAction = InventoryFinder.Object;
 
 	ExitLevel = FSoftObjectPath(TEXT("/Script/Engine.World'/Game/MAEOakForest/Maps/Map_Oak_Forest_A.Map_Oak_Forest_A'"));
 }
@@ -61,6 +67,8 @@ void AZZPlayerController::SetupEnhancedInputComponent(UEnhancedInputComponent* c
 {
 	EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Triggered, this,
 								   &AZZPlayerController::MenuHandler);
+	EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this,
+							       &AZZPlayerController::InventoryHandler);
 	// EnhancedInputComponent->BindAction(ShowScoreAction, ETriggerEvent::Triggered, this,
 	// 								   &AZZPlayerController::ShowScoreBoardAndTabMinimap);
 	// EnhancedInputComponent->BindAction(HideScoreAction, ETriggerEvent::Triggered, this,
@@ -157,6 +165,11 @@ void AZZPlayerController::OnPossess(APawn* PawnToPossess)
 void AZZPlayerController::MenuHandler()
 {
 	if (bEnableExitShortcut) UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), ExitLevel);
+}
+
+void AZZPlayerController::InventoryHandler()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Inventory Opened"));
 }
 
 void AZZPlayerController::AbilityInput(TAbilitySystemInputCallback Function, int32 InputID)

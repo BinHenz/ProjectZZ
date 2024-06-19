@@ -59,6 +59,7 @@ private:
 	// void ShowScoreBoardAndTabMinimap();
 	// void HideScoreBoardAndTabMinimap();
 	void MenuHandler();
+	void InventoryHandler();
 	void AbilityInput(TAbilitySystemInputCallback Function, int32 InputID);
 
 	UPROPERTY(EditAnywhere, Category=Input)
@@ -69,6 +70,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Input)
 	UInputAction* MenuAction;
+
+	UPROPERTY(EditAnywhere, Category=Input)
+	UInputAction* InventoryAction;
 
 	UPROPERTY(EditAnywhere, Category=Input)
 	UInputAction* ShowScoreAction;

@@ -24,6 +24,11 @@ enum class EZZAbilityInputBind : uint8
 	Ability14 UMETA(DisplayName = "X"),
 	Ability15 UMETA(DisplayName = "C"),
 	Ability16 UMETA(DisplayName = "V"),
+	Ability17 UMETA(DisplayName = "1"),
+	Ability18 UMETA(DisplayName = "2"),
+	Ability19 UMETA(DisplayName = "3"),
+	Ability20 UMETA(DisplayName = "4"),
+	Ability21 UMETA(DisplayName = "5"),
 };
 
 /** 입력 키와 오프셋값을 통해 어빌리티 시스템 컴포넌트에서 사용하는 InputID로의 변환을 구현합니다. */

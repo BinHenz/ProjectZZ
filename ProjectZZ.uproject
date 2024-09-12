@@ -75,6 +75,10 @@
 		{
 			"Name": "AppleMoviePlayer",
 			"Enabled": false
+		},
+		{
+			"Name": "ChaosVehiclesPlugin",
+			"Enabled": true
 		}
 	]
 }

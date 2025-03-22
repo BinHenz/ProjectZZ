@@ -294,7 +294,7 @@ private:
 	TSubclassOf<UGameplayEffect> StatRegenEffect;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UGameplayEffect> GainUltimateOnAttackEffect;
+	TSubclassOf<UGameplayEffect> SpecialAbilityEffect;
 
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag DeathTag;

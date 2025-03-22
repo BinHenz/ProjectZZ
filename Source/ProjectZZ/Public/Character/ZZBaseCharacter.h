@@ -121,8 +121,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float MaxHealth;
 
-	//TODO: 캐릭터가 가진 기본 스탯을 어빌리티 셋에 설정하도록 로직을 추가하여야 합니다
-	// 이 캐릭터의 최대 총알 갯수의 기본값입니다. AttributeSet의 기본 값을 설정하는데 사용됩니다. 런타임중에 변경하지 마십시오
+	// 이 캐릭터의 최대 총알 갯수의 기본값입니다. AttributeSet의 기본 값을 설정하는데 사용합니다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float MaxAmmo;
 
@@ -130,14 +129,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float MaxSkillStack;
 
-	// 이 캐릭터의 공격력의 기본값입니다. AttributeSet의 기본 값을 설정하는데 사용됩니다. 런타임중에 변경하지 마십시오
+	// 이 캐릭터의 공격력의 기본값입니다. AttributeSet의 기본 값을 설정하는데 사용됩니다.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ZZCharacterStat, meta=(AllowPrivateAccess = true))
 	float AttackPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<EFaction, TEnumAsByte<ECollisionChannel>> FactionObjectTypeMap;
 	
-	//캐릭터의 이름입니다
+	//캐릭터의 이름.
 	FName CharacterName;
 
 public:
